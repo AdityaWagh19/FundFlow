@@ -82,6 +82,20 @@ export const Web3Provider = ({ children }) => {
       setIsConnecting(true);
       setError(null);
 
+      // Force MetaMask to show its account-selection popup every time,
+      // even if the site was previously authorized. Falls back to
+      // eth_requestAccounts for wallets that don't support this method.
+      try {
+        await window.ethereum.request({
+          method: 'wallet_requestPermissions',
+          params: [{ eth_accounts: {} }],
+        });
+      } catch (permErr) {
+        // User rejected or wallet doesn't support wallet_requestPermissions;
+        // fall back silently — eth_requestAccounts below will handle it.
+        if (permErr.code === 4001) throw permErr; // User explicitly rejected — propagate
+      }
+
       const browserProvider = new ethers.BrowserProvider(window.ethereum);
       const accounts = await browserProvider.send('eth_requestAccounts', []);
       const network = await browserProvider.getNetwork();

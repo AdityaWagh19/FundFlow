@@ -363,6 +363,18 @@ export default function Header({
 
                   <div className="border-t border-slate-100 my-1"></div>
 
+                  {/* Switch Account — re-triggers MetaMask popup */}
+                  <button
+                    onClick={async () => {
+                      setIsDropdownOpen(false);
+                      await connectWallet();
+                    }}
+                    className="w-full flex items-center gap-2 p-2 rounded-lg hover:bg-brand-50 text-brand-600 font-semibold transition-colors cursor-pointer"
+                  >
+                    <Wallet className="w-3.5 h-3.5" />
+                    <span>Switch Account</span>
+                  </button>
+
                   {/* Explicit Disconnect Button */}
                   <button
                     onClick={() => {
