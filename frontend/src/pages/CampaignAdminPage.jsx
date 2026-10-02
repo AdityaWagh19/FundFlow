@@ -147,7 +147,7 @@ export default function CampaignAdminPage({
 
                   <h4 className="text-sm font-bold text-slate-800 line-clamp-1">{c.title}</h4>
                   <div className="text-xs text-slate-500 mt-1">
-                    Raised: <span className="font-bold text-brand-600">{c.amountCollected} ETH</span> of {c.targetAmount} ETH ({percent}%)
+                    Raised: <span className="font-bold text-brand-600">₹{Math.round(parseFloat(c.amountCollected || 0) * 285000).toLocaleString('en-IN')}</span> ({c.amountCollected} ETH) of ₹{Math.round(parseFloat(c.targetAmount || 1) * 285000).toLocaleString('en-IN')} ({percent}%)
                   </div>
                   <div className="text-[10px] text-slate-400 font-mono mt-0.5">
                     Organizer: {c.organizer ? `${c.organizer.substring(0, 6)}...${c.organizer.substring(c.organizer.length - 4)}` : 'On-Chain Vault'}

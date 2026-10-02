@@ -12,16 +12,22 @@ import {
   UserCheck,
   Heart,
   ShieldCheck,
+  X,
+  CheckCircle2,
+  HelpCircle,
+  MessageSquare,
 } from 'lucide-react';
 import { useWeb3 } from '../context/Web3Context';
 import UserAvatar from './UserAvatar';
-import { ETH_TO_INR_RATE } from '../utils/constants';
+import { ETH_TO_INR_RATE, DEFAULT_CONTRACT_ADDRESS } from '../utils/constants';
 
 export default function Header({
   searchQuery,
   setSearchQuery,
   roleMode = 'auto',
   setRoleMode,
+  onSearchSubmit,
+  onNavigateTab,
 }) {
   const {
     account,
@@ -34,8 +40,38 @@ export default function Header({
   } = useWeb3();
 
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
+  const [isSupportOpen, setIsSupportOpen] = useState(false);
+  const [hasUnreadNotifications, setHasUnreadNotifications] = useState(true);
   const [copied, setCopied] = useState(false);
+
   const dropdownRef = useRef(null);
+  const notificationsRef = useRef(null);
+  const supportRef = useRef(null);
+
+  const notifications = [
+    {
+      id: 1,
+      title: 'Contribution Recorded',
+      desc: '0.001 ETH verified on Sepolia for Pune ZP Schools',
+      time: '12m ago',
+      unread: true,
+    },
+    {
+      id: 2,
+      title: 'Milestone Disbursed',
+      desc: 'Emergency Flood Relief funds released with IPFS proof',
+      time: '1h ago',
+      unread: true,
+    },
+    {
+      id: 3,
+      title: 'Smart Contract Active',
+      desc: `Sepolia EVM: ${DEFAULT_CONTRACT_ADDRESS.slice(0, 10)}...`,
+      time: '3h ago',
+      unread: false,
+    },
+  ];
 
   const truncateAddress = (addr) => {
     if (!addr) return '';
@@ -49,11 +85,17 @@ export default function Header({
     setTimeout(() => setCopied(false), 2000);
   };
 
-  // Close dropdown on outside click
+  // Close menus on outside click
   useEffect(() => {
     const handleClickOutside = (e) => {
       if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
         setIsDropdownOpen(false);
+      }
+      if (notificationsRef.current && !notificationsRef.current.contains(e.target)) {
+        setIsNotificationsOpen(false);
+      }
+      if (supportRef.current && !supportRef.current.contains(e.target)) {
+        setIsSupportOpen(false);
       }
     };
     document.addEventListener('mousedown', handleClickOutside);
@@ -64,6 +106,13 @@ export default function Header({
     maximumFractionDigits: 0,
   });
 
+  const handleSearchSubmit = (e) => {
+    e.preventDefault();
+    if (onSearchSubmit) {
+      onSearchSubmit(searchQuery);
+    }
+  };
+
   return (
     <header className="h-16 bg-white border-b border-slate-100 flex items-center justify-between px-6 lg:px-8 sticky top-0 z-20">
       {/* Title greeting */}
@@ -73,19 +122,19 @@ export default function Header({
         </h1>
       </div>
 
-      {/* Central Search Bar */}
-      <div className="relative w-80 lg:w-96 hidden md:block">
+      {/* Central Search Bar with Form Submit */}
+      <form onSubmit={handleSearchSubmit} className="relative w-80 lg:w-96 hidden md:block">
         <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
         <input
           type="text"
-          placeholder="Search Indian causes, categories, or keywords..."
+          placeholder="Search Indian causes, categories (press Enter to browse)..."
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
           className="w-full pl-10 pr-4 py-1.5 bg-slate-50 border border-slate-100 rounded-lg text-xs text-slate-700 placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-brand-500 focus:bg-white transition-all"
         />
-      </div>
+      </form>
 
-      {/* Right Controls: Role Simulator, Notifications, Web3 Profile & Disconnect */}
+      {/* Right Controls: Role Simulator, Notifications, Mail, Web3 Profile */}
       <div className="flex items-center gap-2.5">
         {/* Presentation Role Switcher (Donor vs Organizer Demo View) */}
         {setRoleMode && (
@@ -138,16 +187,112 @@ export default function Header({
           </button>
         )}
 
-        <button className="w-8 h-8 rounded-lg bg-slate-50 hover:bg-slate-100 flex items-center justify-center text-slate-500 transition-colors relative cursor-pointer">
-          <Bell className="w-4 h-4" />
-          <span className="w-1.5 h-1.5 rounded-full bg-brand-600 absolute top-2 right-2"></span>
-        </button>
+        {/* 1. Notifications Button & Popover */}
+        <div className="relative" ref={notificationsRef}>
+          <button
+            onClick={() => {
+              setIsNotificationsOpen(!isNotificationsOpen);
+              setIsSupportOpen(false);
+              setHasUnreadNotifications(false);
+            }}
+            className="w-8 h-8 rounded-lg bg-slate-50 hover:bg-slate-100 flex items-center justify-center text-slate-500 transition-colors relative cursor-pointer"
+            title="Notifications"
+          >
+            <Bell className="w-4 h-4" />
+            {hasUnreadNotifications && (
+              <span className="w-2 h-2 rounded-full bg-brand-600 absolute top-1.5 right-1.5"></span>
+            )}
+          </button>
 
-        {/* Profile / Web3 Wallet Button & Disconnect Dropdown */}
+          {isNotificationsOpen && (
+            <div className="absolute right-0 mt-2 w-72 bg-white rounded-xl shadow-lg border border-slate-100 p-3 z-50 text-xs space-y-2.5">
+              <div className="flex items-center justify-between pb-2 border-b border-slate-100">
+                <span className="font-bold text-slate-800">Notifications</span>
+                <span className="text-[10px] text-brand-600 font-semibold cursor-pointer hover:underline" onClick={() => setHasUnreadNotifications(false)}>
+                  Mark all read
+                </span>
+              </div>
+              <div className="space-y-2">
+                {notifications.map((n) => (
+                  <div key={n.id} className="p-2 rounded-lg bg-slate-50/70 hover:bg-slate-50 transition-colors text-left space-y-0.5">
+                    <div className="flex items-center justify-between">
+                      <span className="font-semibold text-slate-800">{n.title}</span>
+                      <span className="text-[10px] text-slate-400">{n.time}</span>
+                    </div>
+                    <p className="text-[11px] text-slate-500">{n.desc}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* 2. Support / Info Button & Popover */}
+        <div className="relative" ref={supportRef}>
+          <button
+            onClick={() => {
+              setIsSupportOpen(!isSupportOpen);
+              setIsNotificationsOpen(false);
+            }}
+            className="w-8 h-8 rounded-lg bg-slate-50 hover:bg-slate-100 flex items-center justify-center text-slate-500 transition-colors cursor-pointer"
+            title="Assistance & Support"
+          >
+            <Mail className="w-4 h-4" />
+          </button>
+
+          {isSupportOpen && (
+            <div className="absolute right-0 mt-2 w-64 bg-white rounded-xl shadow-lg border border-slate-100 p-3 z-50 text-xs space-y-2.5">
+              <div className="font-bold text-slate-800 pb-1.5 border-b border-slate-100">
+                Support & Helpdesk
+              </div>
+              <div className="space-y-1.5 text-left">
+                {onNavigateTab && (
+                  <button
+                    onClick={() => {
+                      onNavigateTab('help');
+                      setIsSupportOpen(false);
+                    }}
+                    className="w-full flex items-center gap-2 p-2 rounded-lg hover:bg-slate-50 text-slate-700 transition-colors cursor-pointer"
+                  >
+                    <HelpCircle className="w-3.5 h-3.5 text-brand-600" />
+                    <span>Frequently Asked Questions</span>
+                  </button>
+                )}
+                {onNavigateTab && (
+                  <button
+                    onClick={() => {
+                      onNavigateTab('about');
+                      setIsSupportOpen(false);
+                    }}
+                    className="w-full flex items-center gap-2 p-2 rounded-lg hover:bg-slate-50 text-slate-700 transition-colors cursor-pointer"
+                  >
+                    <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
+                    <span>About FundFlow Protocol</span>
+                  </button>
+                )}
+                <a
+                  href={`https://sepolia.etherscan.io/address/${DEFAULT_CONTRACT_ADDRESS}`}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="w-full flex items-center gap-2 p-2 rounded-lg hover:bg-slate-50 text-slate-700 transition-colors cursor-pointer"
+                >
+                  <ExternalLink className="w-3.5 h-3.5 text-slate-400" />
+                  <span>Verify Contract on Sepolia</span>
+                </a>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* 3. Profile / Web3 Wallet Button & Disconnect Dropdown */}
         {account ? (
           <div className="relative" ref={dropdownRef}>
             <button
-              onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+              onClick={() => {
+                setIsDropdownOpen(!isDropdownOpen);
+                setIsNotificationsOpen(false);
+                setIsSupportOpen(false);
+              }}
               className="flex items-center gap-2.5 p-1.5 rounded-lg hover:bg-slate-50 border border-transparent hover:border-slate-100 transition-all cursor-pointer"
             >
               <UserAvatar account={account} size="md" />
@@ -156,7 +301,7 @@ export default function Header({
                   <span>{truncateAddress(account)}</span>
                   <ChevronDown className="w-3 h-3 text-slate-400" />
                 </div>
-                <div className="text-[10px] text-brand-600 font-medium">{balance} ETH</div>
+                <div className="text-[10px] text-brand-600 font-medium">₹{inrBalance} ({balance} ETH)</div>
               </div>
             </button>
 
@@ -183,7 +328,7 @@ export default function Header({
                   </div>
                   <div className="flex justify-between font-bold text-slate-800">
                     <span className="font-mono text-brand-600">{balance} ETH</span>
-                    <span>≈ ₹{inrBalance}</span>
+                    <span>₹{inrBalance}</span>
                   </div>
                 </div>
 

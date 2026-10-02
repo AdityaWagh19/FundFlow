@@ -91,10 +91,10 @@ export default function CampaignsPage({ campaigns, onDonateClick }) {
                   {c.description}
                 </p>
 
-                {/* Progress & Numbers */}
+                {/* Progress & Numbers in INR */}
                 <div className="flex items-center justify-between text-xs font-semibold text-slate-700 mb-1.5">
-                  <span className="text-brand-600 font-bold">{c.raisedFormatted || `${c.amountCollected} ETH`}</span>
-                  <span className="text-slate-400 font-normal">Goal: {c.targetFormatted || `${c.targetAmount} ETH`}</span>
+                  <span className="text-brand-600 font-bold">{c.raisedFormatted || `₹${Math.round(parseFloat(c.amountCollected || 0) * 285000).toLocaleString('en-IN')}`}</span>
+                  <span className="text-slate-500 font-normal">Goal: {c.targetFormatted || `₹${Math.round(parseFloat(c.targetAmount || 1) * 285000).toLocaleString('en-IN')}`}</span>
                   <span className="text-slate-500 font-mono text-[11px]">{percent}%</span>
                 </div>
 
@@ -110,7 +110,7 @@ export default function CampaignsPage({ campaigns, onDonateClick }) {
               {/* Action Button */}
               <button
                 onClick={() => onDonateClick(c)}
-                className="w-full py-2.5 bg-brand-600 hover:bg-brand-700 text-white font-semibold text-xs rounded-lg transition-colors"
+                className="w-full py-2.5 bg-brand-600 hover:bg-brand-700 text-white font-semibold text-xs rounded-lg transition-colors cursor-pointer shadow-xs"
               >
                 Contribute Now
               </button>

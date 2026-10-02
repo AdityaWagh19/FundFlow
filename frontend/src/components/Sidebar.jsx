@@ -134,7 +134,12 @@ export default function Sidebar({
       </div>
 
       {/* Network & Protocol Status */}
-      <div className="px-3 py-2.5 rounded-lg bg-slate-50 border border-slate-100 text-xs">
+      <a
+        href="https://sepolia.etherscan.io/address/0x376a819Cf9e7dFAb537aE00e1063A9A17f63c497"
+        target="_blank"
+        rel="noreferrer"
+        className="px-3 py-2.5 rounded-lg bg-slate-50 hover:bg-slate-100 border border-slate-100 transition-colors text-xs block cursor-pointer group"
+      >
         <div className="flex items-center justify-between mb-1">
           <span className="text-slate-500 text-[11px]">Contract Status</span>
           <span className="inline-flex items-center gap-1 font-semibold text-emerald-600 text-[11px]">
@@ -142,8 +147,11 @@ export default function Sidebar({
             Active
           </span>
         </div>
-        <div className="text-[10px] text-slate-400 truncate">Sepolia Testnet</div>
-      </div>
+        <div className="text-[10px] text-slate-400 group-hover:text-brand-600 flex items-center justify-between transition-colors">
+          <span>Sepolia: 0x376a...c497</span>
+          <span className="text-xs">↗</span>
+        </div>
+      </a>
     </aside>
   );
 }

@@ -314,6 +314,8 @@ export default function App() {
           setSearchQuery={setSearchQuery}
           roleMode={roleMode}
           setRoleMode={handleSetRoleMode}
+          onSearchSubmit={() => setActiveTab('campaigns')}
+          onNavigateTab={setActiveTab}
         />
 
         {/* Dashboard Body */}
@@ -404,7 +406,7 @@ export default function App() {
             )}
 
             {/* View 8: Help & FAQs */}
-            {activeTab === 'help' && <HelpPage />}
+            {activeTab === 'help' && <HelpPage onNavigateTab={setActiveTab} />}
 
             {/* View 9: About / SPPU BCT Academic Project */}
             {activeTab === 'about' && <AboutPage />}
