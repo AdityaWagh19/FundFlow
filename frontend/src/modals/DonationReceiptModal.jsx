@@ -98,10 +98,10 @@ export default function DonationReceiptModal({ isOpen, onClose, receipt }) {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-900/50 backdrop-blur-xs overflow-y-auto">
-      <div className="bg-white rounded-3xl max-w-md w-full p-6 sm:p-8 shadow-2xl border border-slate-100 relative my-auto max-h-[92vh] overflow-y-auto">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-900/50 backdrop-blur-xs overflow-y-auto font-sans">
+      <div className="bg-white rounded-3xl max-w-md w-full p-6 sm:p-8 shadow-2xl border border-slate-100 relative my-auto max-h-[92vh] overflow-y-auto font-sans">
         {/* Printable & Exportable Canvas Area */}
-        <div ref={receiptRef} className="bg-white">
+        <div ref={receiptRef} className="bg-white font-sans">
           {/* Header */}
           <div className="flex items-center justify-between mb-6">
             <h2 className="text-lg font-bold text-slate-900 tracking-tight">Payment Record</h2>
@@ -154,7 +154,7 @@ export default function DonationReceiptModal({ isOpen, onClose, receipt }) {
                 <div className="text-xs font-semibold text-slate-800">Smart Contract Escrow</div>
                 <div className="text-[11px] text-slate-400 mt-0.5">{timestamp}</div>
               </div>
-              <div className="text-xs font-mono font-medium text-slate-700">Block #{blockNumber}</div>
+              <div className="text-xs font-medium text-slate-700">Block #{blockNumber}</div>
             </div>
 
             <div className="border-b border-slate-100"></div>
@@ -165,7 +165,7 @@ export default function DonationReceiptModal({ isOpen, onClose, receipt }) {
                 <div className="text-xs font-semibold text-slate-800">Milestone Vault Allocation</div>
                 <div className="text-[11px] text-slate-400 mt-0.5">Grassroots Beneficiary Deployment</div>
               </div>
-              <div className="text-xs font-mono font-medium text-slate-700">0% Intermediary</div>
+              <div className="text-xs font-medium text-slate-700">0% Intermediary</div>
             </div>
 
             <div className="border-b border-slate-100"></div>
@@ -174,7 +174,7 @@ export default function DonationReceiptModal({ isOpen, onClose, receipt }) {
             <div className="flex items-start justify-between">
               <div>
                 <div className="text-xs font-semibold text-slate-800">Immutable Audit Ledger</div>
-                <div className="text-[11px] font-mono text-slate-400 mt-0.5 truncate max-w-[170px]">
+                <div className="text-[11px] text-slate-400 mt-0.5 truncate max-w-[170px]">
                   {txHash && txHash.length > 18 ? `${txHash.slice(0, 16)}...` : txHash}
                 </div>
               </div>
@@ -185,7 +185,7 @@ export default function DonationReceiptModal({ isOpen, onClose, receipt }) {
 
             {/* Total Indicator in Emerald */}
             <div className="text-right">
-              <span className="text-xs font-bold text-emerald-600 font-mono">Total Direct 100%</span>
+              <span className="text-xs font-bold text-emerald-600">Total Direct 100%</span>
             </div>
           </div>
 
@@ -193,20 +193,20 @@ export default function DonationReceiptModal({ isOpen, onClose, receipt }) {
           <div className="space-y-2 mb-6">
             <div className="flex items-center justify-between text-xs text-slate-700">
               <span className="font-medium">Gross Contribution</span>
-              <span className="font-bold text-slate-900 font-mono">{inrAmount}</span>
+              <span className="font-bold text-slate-900">{inrAmount}</span>
             </div>
 
             <div className="flex items-center justify-between text-xs text-slate-700">
               <span className="font-medium">Platform Commission</span>
-              <span className="font-mono text-slate-500">- ₹0.00 (0%)</span>
+              <span className="text-slate-500 font-medium">- ₹0.00 (0%)</span>
             </div>
 
             <div className="pt-2 text-right">
               <div className="text-xs font-bold text-emerald-600">Take Home</div>
-              <div className="text-3xl font-extrabold text-emerald-600 font-mono tracking-tight mt-0.5">
+              <div className="text-3xl font-extrabold text-emerald-600 tracking-tight mt-0.5">
                 {inrAmount}
               </div>
-              <div className="text-[11px] text-slate-400 font-mono mt-0.5">
+              <div className="text-[11px] text-slate-400 font-medium mt-0.5">
                 {ethAmount} on Ethereum Sepolia
               </div>
             </div>
