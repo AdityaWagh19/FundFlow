@@ -4,6 +4,7 @@
   "description": "Blockchain-Based Transparent Charity Donation System",
   "main": "index.js",
   "scripts": {
+    "build": "npm --prefix frontend install && npm --prefix frontend run build",
     "test": "hardhat test",
     "compile": "hardhat compile",
     "deploy:local": "hardhat run scripts/deploy.js --network localhost",

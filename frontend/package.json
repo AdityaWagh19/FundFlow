@@ -12,6 +12,7 @@
     "canvas-confetti": "^1.9.4",
     "clsx": "^2.1.1",
     "ethers": "^6.13.2",
+    "fundflow-blockchain-charity": "file:..",
     "lucide-react": "^0.350.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
