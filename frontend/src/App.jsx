@@ -113,12 +113,33 @@ export default function App() {
           };
         });
 
-        // Merge on-chain with India-centric initial campaigns and locally created campaigns
+        // On-chain parsed data is the source of truth for amountCollected.
+        // Start with on-chain campaigns (which have live raised amounts).
+        // Add local "pending" user-created campaigns only if they don't already
+        // appear on-chain (matched by title + organizer address), which handles
+        // the case where a newly created campaign hasn't been indexed yet.
         const localCreated = getStoredCreatedCampaigns();
-        const combined = [...localCreated, ...parsed];
+        const combined = [...parsed];
+
+        // Supplement with INITIAL_CAMPAIGNS for any ids not returned on-chain
         INITIAL_CAMPAIGNS.forEach((initC) => {
           if (!combined.some((item) => item.id === initC.id)) {
             combined.push(initC);
+          }
+        });
+
+        // Supplement with locally stored user-created campaigns that are not
+        // yet reflected in on-chain data (no matching title + organizer pair)
+        localCreated.forEach((lc) => {
+          const alreadyOnChain = combined.some(
+            (item) =>
+              item.title === lc.title &&
+              item.organizer &&
+              lc.organizer &&
+              item.organizer.toLowerCase() === lc.organizer.toLowerCase()
+          );
+          if (!alreadyOnChain) {
+            combined.unshift(lc); // prepend so it appears at the top
           }
         });
 
