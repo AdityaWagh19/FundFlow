@@ -8,39 +8,43 @@
 
 ## 1. Abstract & Problem Statement
 
-Traditional charitable donation mechanisms depend on centralized intermediaries, exposing donors to opaque financial management, high administrative overhead, and zero visibility into fund disbursement. 
+Traditional charitable donation mechanisms depend on centralized intermediaries, exposing donors to opaque financial management, 7% to 15% administrative overhead, and zero visibility into how disbursements are spent. 
 
-**FundFlow** is a decentralized application (dApp) developed as an academic mini project for the **SPPU Blockchain Technology (BCT)** curriculum. It leverages the Ethereum blockchain to eliminate intermediary opacity. Donations are managed via an audited, immutable smart contract escrow on Ethereum Sepolia, providing real-time tracking, cryptographic proofs of expenditure, and publicly verifiable audit trails.
+**FundFlow** is a decentralized application (dApp) developed as an academic mini project for the **SPPU Blockchain Technology (BCT)** curriculum. It leverages the Ethereum blockchain to eliminate intermediary take-rates and restore radical transparency. Donations are locked in an audited, non-reentrant smart contract escrow on Ethereum Sepolia, providing real-time INR/ETH conversion tracking, cryptographic milestone-based disbursement proofs anchored on IPFS, verifiable instant Payment Records, and immutable on-chain audit trails.
 
 ---
 
-## 2. SPPU BCT Syllabus Mapping
+## 2. BCT Concepts Used
 
-| SPPU BCT Syllabus Unit | Core Curriculum Concept | Project Implementation in FundFlow |
+| Blockchain Concept | Theoretical Principle | Implementation in FundFlow |
 | :--- | :--- | :--- |
-| **Unit I: Blockchain Fundamentals** | Distributed Ledgers, P2P Networks, Cryptographic Hashing | Immutable on-chain transaction records; SHA-256/Keccak-256 transaction indexing on Ethereum. |
-| **Unit II: Ethereum Architecture** | EVM (Ethereum Virtual Machine), Accounts, Gas Model, State Transitions | State variables (`mapping`, `struct`), gas-optimized transactions, Wei/Ether conversion. |
-| **Unit III: Smart Contract Development** | Solidity Programming, Modifiers, Events, Fallback/Payable functions | `FundFlow.sol` written in Solidity `^0.8.20`; custom modifiers (`onlyOrganizer`, `nonReentrant`), indexed events. |
-| **Unit IV: Security & Best Practices** | Reentrancy Vulnerabilities, Access Control, Overflow Checks | Checks-Effects-Interactions pattern, custom mutex reentrancy lock, native Solidity 0.8+ arithmetic checks. |
-| **Unit V: Decentralized Storage** | Off-Chain Storage, Content Addressing, IPFS | IPFS integration (Pinata Gateway) for campaign media and proof-of-work withdrawal receipts. |
-| **Unit VI: dApp Engineering** | Web3 Integration, Client Providers, Testnets, Wallets | Full-stack dApp built with React + Vite, Ethers.js v6, MetaMask EIP-1193 integration on Ethereum Sepolia. |
+| **Distributed Ledger & Immutability** | Cryptographic state persistence without central authorities | Every contribution, withdrawal event, and balance query is permanently etched on the Ethereum Sepolia ledger. |
+| **EVM State Machine & Gas Optimization** | Deterministic byte-code execution and gas-efficient state mutators | Optimized Solidity storage layouts (`struct`, `mapping`, packed enums), reducing gas consumption per donation and withdrawal transaction. |
+| **Smart Contract Escrow & Access Control** | Self-executing code with role-based cryptographic permissions | `FundFlow.sol` enforces that only the registered cause creator (`onlyOrganizer`) can withdraw escrowed capital upon logging expenditure reasons. |
+| **Decentralized Storage (IPFS)** | Content-addressed storage offloading large media from on-chain state | Campaign banners and withdrawal invoice proofs are pinned via IPFS CID hashes, linking immutable media directly with smart contract transactions. |
+| **Smart Contract Security Patterns** | Preventing reentrancy and arithmetic anomalies | Strict adherence to the `Checks-Effects-Interactions` pattern coupled with custom mutex reentrancy locks and native Solidity `^0.8.20` overflow safeguards. |
+| **Web3 Client Engineering (EIP-1193)** | Asynchronous browser wallet handshakes and cryptographic transaction signing | Full-stack integration using React, Ethers.js v6, responsive mobile drawer navigation, and instant client-side Payment Record generation. |
 
 ---
 
 ## 3. System Architecture & Data Flow
 
-```text
-+---------------------+       +-----------------------+       +-----------------------------+
-|    Client (Donor/   | <===> |    Web3 Provider      | <===> |      Ethereum Network       |
-|      Organizer)     |       | (MetaMask + Ethers.js)|       |      (Sepolia Testnet)      |
-+---------------------+       +-----------------------+       +-----------------------------+
-           |                                                                 |
-           | Upload Image / Receipt Proof                                    | Emits Events
-           v                                                                 v
-+---------------------+                                       +-----------------------------+
-|    IPFS Storage     |                                       |     FundFlow.sol Escrow     |
-|   (Pinata / CID)    | ===================================> |    (Audit Logs & Balances)  |
-+---------------------+         Stores Hash On-Chain          +-----------------------------+
+```mermaid
+graph TD
+    Client["Client Interface (Donor / Organizer)"]
+    MetaMask["Web3 Wallet (MetaMask / Ethers.js v6)"]
+    IPFS["Decentralized Storage (IPFS / Pinata)"]
+    Sepolia["Ethereum Sepolia Testnet"]
+    Escrow["FundFlow.sol Smart Contract Escrow"]
+    Receipt["Payment Record Certificate (PNG / PDF)"]
+
+    Client -->|"1. Connect & Sign Transactions"| MetaMask
+    Client -->|"2. Pin Media & Expense Invoices"| IPFS
+    IPFS -->|"3. Content Identifier (CID)"| Client
+    MetaMask -->|"4. Broadcast Transaction"| Sepolia
+    Sepolia -->|"5. Execute Escrow Logic"| Escrow
+    Escrow -->|"6. Emit Blockchain Events"| Client
+    Client -->|"7. Render Verified Receipt"| Receipt
 ```
 
 ---
@@ -60,7 +64,7 @@ struct Donation {
 struct Withdrawal {
     uint256 amount;
     string purpose;
-    string receiptIpfsHash; // Off-chain proof of expenditure
+    string receiptIpfsHash; // Off-chain proof of expenditure on IPFS
     uint256 timestamp;
 }
 
@@ -81,19 +85,20 @@ struct Campaign {
 ```
 
 ### 4.2 Key Contract Functions
-- `createCampaign(...)`: Registers a new fundraising initiative with an target amount, duration, and IPFS metadata hash.
-- `donate(uint256 _campaignId)`: *Payable* function accepting ETH, automatically updating contract escrow balance and emitting a `Donated` event.
-- `withdrawFunds(uint256 _campaignId, uint256 _amount, string memory _purpose, string memory _receiptIpfsHash)`: Allows verified campaign organizers to withdraw collected funds upon logging expenditure purpose and receipt proof.
-- `getPlatformOverview()`: Read-only view function returning aggregated metrics (total ETH raised, donations count, active campaigns).
+- `createCampaign(...)`: Registers a new verified humanitarian cause with an Ethereum funding target, deadline, and IPFS metadata hash.
+- `donate(uint256 _campaignId)`: *Payable* function accepting ETH, transferring funds into contract escrow, updating donor history, and emitting a `Donated` event.
+- `withdrawFunds(uint256 _campaignId, uint256 _amount, string memory _purpose, string memory _receiptIpfsHash)`: Allows verified campaign organizers to execute milestone releases only after attaching an expenditure justification and IPFS invoice CID.
+- `getPlatformOverview()`: Read-only view returning real-time aggregated metrics (total capital escrowed, total donations, verified initiatives count).
 
 ---
 
 ## 5. Security & Academic Best Practices
 
-1. **Reentrancy Protection:** All state modifications precede external value transfers (`Checks-Effects-Interactions` pattern), further reinforced by a custom `nonReentrant` lock.
-2. **Access Control:** Restricted operations (fund withdrawals and campaign status toggling) strictly require `msg.sender == campaign.organizer`.
-3. **Escrow Invariant:** Organizers can never withdraw more funds than `amountCollected - amountWithdrawn`.
-4. **Decentralized Auditability:** Expenditure receipts are content-addressed on IPFS and permanently etched into blockchain state logs.
+1. **Reentrancy Immunity:** State updates occur strictly before external value transfers (`Checks-Effects-Interactions` pattern), fortified by a mutex lock preventing recursive draining attacks.
+2. **Cryptographic Access Control:** Milestone withdrawals and campaign status toggles strictly verify `msg.sender == campaign.organizer`.
+3. **Escrow Solvency Invariant:** Contract guarantees mathematically that cumulative withdrawals never exceed `amountCollected - amountWithdrawn`.
+4. **Decentralized Auditability:** Expenditure invoices are permanently anchored to IPFS and linked directly to Ethereum transaction hashes.
+5. **Zero Middleman Take-Rate:** 100% of contributed capital delivers directly to beneficiary escrow with zero platform commission deductions.
 
 ---
 
@@ -105,6 +110,7 @@ struct Campaign {
 | **Contract Address** | `0x376a819Cf9e7dFAb537aE00e1063A9A17f63c497` |
 | **Block Explorer** | [View on Sepolia Etherscan](https://sepolia.etherscan.io/address/0x376a819Cf9e7dFAb537aE00e1063A9A17f63c497) |
 | **Solidity Compiler** | `0.8.20` (Optimization: 200 runs, EVM: Paris) |
+| **Frontend Production URL** | Deployed on Vercel with automatic continuous integration |
 
 ---
 
@@ -122,7 +128,7 @@ npm install
 # Run automated Hardhat test suite (12 unit tests)
 npx hardhat test
 
-# Optional: Deploy to local or Sepolia network
+# Deploy to Sepolia testnet
 npx hardhat run scripts/deploy.js --network sepolia
 ```
 
@@ -142,11 +148,12 @@ Open [http://localhost:3000](http://localhost:3000) to interact with the live pl
 ## 8. Learning Outcomes (SPPU BCT)
 
 Through the implementation of FundFlow, the following academic learning objectives were accomplished:
-- Practical understanding of EVM state management and Solidity smart contract development.
-- Hands-on experience with gas cost estimation and optimization patterns.
-- Integration of decentralized storage (IPFS) with on-chain cryptographic hashes.
-- End-to-end dApp development integrating frontend Web3 providers (Ethers.js v6) and browser wallets (MetaMask).
-- Practical security auditing against reentrancy, integer errors, and unauthorized state mutation.
+- Practical understanding of EVM state management, gas optimization, and Solidity smart contract development.
+- Hands-on implementation of non-reentrant escrow contracts with multi-party access control.
+- Integration of decentralized storage (IPFS) with on-chain cryptographic transaction events.
+- End-to-end dApp development integrating frontend Web3 providers (Ethers.js v6) with mobile-responsive UI components.
+- Implementation of cryptographic verification receipts with client-side image rendering and social sharing integrations.
+- Security auditing against reentrancy, unauthorized withdrawals, and integer state mutations.
 
 ---
 *Submitted as an academic mini project for the Blockchain Technology (BCT) laboratory curriculum, Savitribai Phule Pune University (SPPU).*
