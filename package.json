@@ -1,0 +1,21 @@
+{
+  "name": "fundflow-blockchain-charity",
+  "version": "1.0.0",
+  "description": "Blockchain-Based Transparent Charity Donation System",
+  "main": "index.js",
+  "scripts": {
+    "test": "hardhat test",
+    "compile": "hardhat compile",
+    "deploy:local": "hardhat run scripts/deploy.js --network localhost",
+    "deploy:sepolia": "hardhat run scripts/deploy.js --network sepolia",
+    "node": "hardhat node"
+  },
+  "keywords": ["blockchain", "solidity", "ethereum", "charity", "web3", "sepolia"],
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {
+    "@nomicfoundation/hardhat-toolbox": "^4.0.0",
+    "dotenv": "^16.4.5",
+    "hardhat": "^2.22.2"
+  }
+}
