@@ -36,6 +36,7 @@ import {
   getStoredDonations,
   storeCreatedCampaign,
   getStoredCreatedCampaigns,
+  evictStoredCampaignsFoundOnChain,
   isCampaignOrganizer,
 } from './utils/storageDb';
 
@@ -114,6 +115,10 @@ export default function App() {
         });
 
         // On-chain parsed data is the source of truth for amountCollected.
+        // First, evict stale localStorage entries for campaigns now confirmed
+        // on-chain — this ensures amountCollected is never stale after donations.
+        evictStoredCampaignsFoundOnChain(parsed);
+
         // Start with on-chain campaigns (which have live raised amounts).
         // Add local "pending" user-created campaigns only if they don't already
         // appear on-chain (matched by title + organizer address), which handles

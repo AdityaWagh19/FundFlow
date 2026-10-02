@@ -105,6 +105,28 @@ export const storeCreatedCampaign = (campaign) => {
   }
 };
 
+// Remove stale locally-cached campaign entries once they are confirmed on-chain
+// (matched by title + organizer). Call this during loadBlockchainData.
+export const evictStoredCampaignsFoundOnChain = (onChainCampaigns) => {
+  try {
+    const existing = getStoredCreatedCampaigns();
+    if (existing.length === 0) return;
+    const remaining = existing.filter((lc) => {
+      const foundOnChain = onChainCampaigns.some(
+        (oc) =>
+          oc.title === lc.title &&
+          oc.organizer &&
+          lc.organizer &&
+          oc.organizer.toLowerCase() === lc.organizer.toLowerCase()
+      );
+      return !foundOnChain; // keep only campaigns NOT yet on-chain
+    });
+    localStorage.setItem(STORAGE_KEYS.CREATED_CAMPAIGNS, JSON.stringify(remaining));
+  } catch (e) {
+    console.error('Error evicting on-chain campaigns from local store:', e);
+  }
+};
+
 // --- Web3 Account Profiles (Attached to Connected Wallet) ---
 export const getUserProfile = (account) => {
   if (!account) {
