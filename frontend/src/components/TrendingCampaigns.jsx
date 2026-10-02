@@ -8,7 +8,7 @@ export default function TrendingCampaigns({ campaigns, onDonateClick }) {
         <h3 className="text-sm font-bold text-slate-800 tracking-tight">Trending Campaign</h3>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
         {campaigns.slice(0, 3).map((c) => {
           const percent = c.percent || Math.min(100, Math.round(((Number(c.amountCollected) || 0) / (Number(c.targetAmount) || 1)) * 100));
           return (

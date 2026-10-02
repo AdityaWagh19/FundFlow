@@ -26,12 +26,12 @@ export default function StatCards({
 
   return (
     <div className="mb-6">
-      <div className="flex items-center justify-between mb-3">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 mb-3">
         <h3 className="text-sm font-bold text-slate-800 tracking-tight">Platform Overview</h3>
         <span className="text-[10px] text-slate-400 font-medium font-mono">Aggregated from Smart Contract Escrows</span>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         {/* Card 1: Primary Blue Card - Total Donations Count */}
         <div className="rounded-xl bg-brand-600 text-white p-5 shadow-xs">
           <div className="text-blue-100 text-xs font-medium mb-2">
@@ -61,7 +61,7 @@ export default function StatCards({
         </div>
 
         {/* Card 3: White Card - Total Unique Donors */}
-        <div className="rounded-xl bg-white border border-slate-100 p-5 shadow-xs">
+        <div className="rounded-xl bg-white border border-slate-100 p-5 shadow-xs sm:col-span-2 lg:col-span-1">
           <div className="text-slate-400 text-xs font-medium mb-2">
             Verified Contributors
           </div>

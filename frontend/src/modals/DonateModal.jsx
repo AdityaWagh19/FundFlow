@@ -1,12 +1,12 @@
 import React, { useState } from 'react';
-import { X, Heart, ShieldCheck, ArrowRight, Loader2, ExternalLink, AlertTriangle } from 'lucide-react';
+import { X, Heart, ShieldCheck, ArrowRight, Loader2, ExternalLink, AlertTriangle, Award } from 'lucide-react';
 import { ethers } from 'ethers';
 import confetti from 'canvas-confetti';
 import { useWeb3 } from '../context/Web3Context';
 import { storeDonation } from '../utils/storageDb';
-import { ETH_TO_INR_RATE } from '../utils/constants';
+import { ETH_TO_INR_RATE, CATEGORIES } from '../utils/constants';
 
-export default function DonateModal({ isOpen, onClose, campaign, onDonationSuccess }) {
+export default function DonateModal({ isOpen, onClose, campaign, onDonationSuccess, onOpenReceipt }) {
   const { account, contract, connectWallet } = useWeb3();
   const [amount, setAmount] = useState('0.1');
   const [txStatus, setTxStatus] = useState('idle'); // 'idle' | 'broadcasting' | 'confirming' | 'confirmed' | 'failed'
@@ -121,7 +121,7 @@ export default function DonateModal({ isOpen, onClose, campaign, onDonationSucce
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-xs">
-      <div className="bg-white rounded-xl max-w-md w-full p-6 shadow-xl border border-slate-100 relative">
+      <div className="bg-white rounded-xl max-w-md w-full p-5 sm:p-6 shadow-xl border border-slate-100 relative max-h-[92vh] overflow-y-auto">
         {/* Close Button */}
         <button
           onClick={resetAndClose}
@@ -144,6 +144,35 @@ export default function DonateModal({ isOpen, onClose, campaign, onDonationSucce
               <div className="text-slate-400 text-[10px] mb-0.5">Transaction Hash:</div>
               {txHash}
             </div>
+            <button
+              type="button"
+              onClick={() => {
+                const inrEstimate = Math.round(parseFloat(amount) * ETH_TO_INR_RATE).toLocaleString('en-IN');
+                const catName = CATEGORIES.find((c) => c.id === campaign.category)?.name || 'Humanitarian Cause';
+                onClose();
+                if (onOpenReceipt) {
+                  onOpenReceipt({
+                    donor: account ? `${account.substring(0, 6)}...${account.substring(account.length - 4)}` : 'Verified Donor',
+                    donorAddress: account || '0x...',
+                    campaignTitle: campaign.title,
+                    campaignCategory: catName,
+                    ethAmount: `${amount} ETH`,
+                    inrAmount: `₹${inrEstimate}`,
+                    txHash: txHash || '0xSepoliaVerified...',
+                    blockNumber: blockNumber || '6842918',
+                    timestamp: new Date().toLocaleString('en-IN', {
+                      dateStyle: 'medium',
+                      timeStyle: 'short',
+                    }),
+                  });
+                }
+              }}
+              className="w-full py-2.5 mb-3 bg-gradient-to-r from-brand-600 via-indigo-600 to-emerald-600 hover:opacity-95 text-white font-semibold text-xs rounded-lg transition-all flex items-center justify-center gap-2 cursor-pointer shadow-xs"
+            >
+              <Award className="w-4 h-4" />
+              <span>Get Official Donation Receipt (PDF / Image)</span>
+            </button>
+
             <div className="flex gap-2">
               <a
                 href={`https://sepolia.etherscan.io/tx/${txHash}`}
@@ -155,10 +184,11 @@ export default function DonateModal({ isOpen, onClose, campaign, onDonationSucce
                 <ExternalLink className="w-3.5 h-3.5" />
               </a>
               <button
+                type="button"
                 onClick={resetAndClose}
-                className="flex-1 py-2.5 bg-brand-600 hover:bg-brand-700 text-white font-semibold text-xs rounded-lg transition-colors cursor-pointer"
+                className="flex-1 py-2.5 bg-slate-800 hover:bg-slate-900 text-white font-semibold text-xs rounded-lg transition-colors cursor-pointer"
               >
-                Close & Refresh
+                Done
               </button>
             </div>
           </div>

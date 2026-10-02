@@ -134,7 +134,7 @@ export default function AnalysisPage({ campaigns = [], donations = [] }) {
       </div>
 
       {/* Analytics KPI Row - 100% Dynamic */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <div className="bg-white border border-slate-100 p-4 rounded-xl shadow-xs">
           <div className="text-slate-400 text-xs font-medium mb-1">Intermediary Take-Rate</div>
           <div className="text-2xl font-bold text-emerald-600">0.00%</div>
@@ -208,8 +208,8 @@ export default function AnalysisPage({ campaigns = [], donations = [] }) {
             </span>
           </div>
 
-          <div className="h-64 flex items-center justify-between">
-            <div className="w-1/2 h-full">
+          <div className="min-h-64 flex flex-col sm:flex-row items-center justify-between gap-4">
+            <div className="w-full sm:w-1/2 h-52 sm:h-64">
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
                   <Pie
@@ -230,7 +230,7 @@ export default function AnalysisPage({ campaigns = [], donations = [] }) {
               </ResponsiveContainer>
             </div>
 
-            <div className="w-1/2 space-y-3 pl-4">
+            <div className="w-full sm:w-1/2 space-y-2.5 sm:space-y-3 sm:pl-4">
               {categoryDistribution.map((cat) => (
                 <div key={cat.name} className="flex items-center justify-between text-xs">
                   <div className="flex items-center gap-2">
@@ -248,7 +248,7 @@ export default function AnalysisPage({ campaigns = [], donations = [] }) {
       {/* Auxiliary Impact Overview Table */}
       <div className="bg-white border border-slate-100 p-5 rounded-xl shadow-xs">
         <h3 className="text-sm font-bold text-slate-800 tracking-tight mb-3">Live Protocol Efficiency Breakdown</h3>
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
           <div className="p-3.5 bg-slate-50 rounded-lg">
             <div className="text-[10px] text-slate-400 font-medium uppercase">Active Initiatives</div>
             <div className="text-lg font-bold text-slate-800 font-mono mt-0.5">{campaigns.length}</div>

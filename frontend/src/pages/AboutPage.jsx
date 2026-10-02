@@ -133,7 +133,7 @@ export default function AboutPage() {
       <div className="bg-white rounded-xl border border-slate-100 p-5 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h4 className="text-xs font-bold text-slate-800 mb-1">Audited Smart Contract</h4>
-          <p className="text-[11px] text-slate-400 font-mono">
+          <p className="text-[11px] text-slate-400 font-mono break-all">
             Ethereum Sepolia: {DEFAULT_CONTRACT_ADDRESS}
           </p>
         </div>

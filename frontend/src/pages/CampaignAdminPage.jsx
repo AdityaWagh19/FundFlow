@@ -133,11 +133,11 @@ export default function CampaignAdminPage({
       )}
 
       {/* Navigation Sub-Tabs: My Causes vs All Causes */}
-      <div className="flex items-center justify-between border-b border-slate-200 pb-2">
-        <div className="flex items-center gap-2">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-200 pb-2">
+        <div className="flex items-center gap-2 overflow-x-auto no-scrollbar max-w-full pb-1 sm:pb-0">
           <button
             onClick={() => setActiveSubTab('my-causes')}
-            className={`px-3 py-1.5 text-xs font-bold rounded-lg transition-colors cursor-pointer flex items-center gap-1.5 ${
+            className={`px-3 py-1.5 text-xs font-bold rounded-lg transition-colors cursor-pointer flex items-center gap-1.5 shrink-0 ${
               activeSubTab === 'my-causes'
                 ? 'bg-brand-600 text-white shadow-xs'
                 : 'bg-white border border-slate-200 text-slate-600 hover:bg-slate-50'
@@ -149,7 +149,7 @@ export default function CampaignAdminPage({
 
           <button
             onClick={() => setActiveSubTab('all-causes')}
-            className={`px-3 py-1.5 text-xs font-bold rounded-lg transition-colors cursor-pointer flex items-center gap-1.5 ${
+            className={`px-3 py-1.5 text-xs font-bold rounded-lg transition-colors cursor-pointer flex items-center gap-1.5 shrink-0 ${
               activeSubTab === 'all-causes'
                 ? 'bg-brand-600 text-white shadow-xs'
                 : 'bg-white border border-slate-200 text-slate-600 hover:bg-slate-50'
@@ -168,7 +168,7 @@ export default function CampaignAdminPage({
       {/* Campaigns Listing */}
       <div className="space-y-4">
         {displayedCampaigns.length === 0 ? (
-          <div className="bg-white rounded-xl border border-slate-100 p-10 text-center space-y-3">
+          <div className="bg-white rounded-xl border border-slate-100 p-8 sm:p-10 text-center space-y-3">
             <div className="w-12 h-12 bg-slate-50 text-slate-400 rounded-lg flex items-center justify-center mx-auto mb-2">
               <Megaphone className="w-6 h-6" />
             </div>
@@ -197,12 +197,12 @@ export default function CampaignAdminPage({
             return (
               <div
                 key={c.id}
-                className={`bg-white rounded-xl border p-5 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-5 transition-all ${
+                className={`bg-white rounded-xl border p-4 sm:p-5 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4 sm:gap-5 transition-all ${
                   isOwner ? 'border-indigo-200/80 ring-1 ring-indigo-50' : 'border-slate-100'
                 }`}
               >
-                <div className="flex items-center gap-4">
-                  <div className="w-16 h-16 rounded-lg overflow-hidden bg-slate-100 shrink-0">
+                <div className="flex items-start sm:items-center gap-3 sm:gap-4">
+                  <div className="w-14 sm:w-16 h-14 sm:h-16 rounded-lg overflow-hidden bg-slate-100 shrink-0">
                     <SafeImage
                       src={c.image}
                       alt={c.title}
@@ -210,7 +210,7 @@ export default function CampaignAdminPage({
                     />
                   </div>
                   <div>
-                    <div className="flex items-center gap-2 mb-1 flex-wrap">
+                    <div className="flex items-center gap-1.5 sm:gap-2 mb-1 flex-wrap">
                       <span className="text-[10px] font-bold px-2 py-0.5 rounded-sm bg-slate-100 text-slate-700 font-mono">
                         Cause #{c.id}
                       </span>
@@ -236,8 +236,8 @@ export default function CampaignAdminPage({
                 </div>
 
                 {/* Progress & Actions */}
-                <div className="flex items-center gap-4 shrink-0">
-                  <div className="w-32 hidden lg:block">
+                <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4 shrink-0 w-full md:w-auto">
+                  <div className="w-full sm:w-32 hidden lg:block">
                     <div className="w-full h-1.5 bg-slate-100 rounded-sm overflow-hidden mb-1">
                       <div className="h-full bg-brand-600 rounded-sm" style={{ width: `${percent}%` }}></div>
                     </div>
@@ -247,23 +247,23 @@ export default function CampaignAdminPage({
                   {isOwner ? (
                     <button
                       onClick={() => onOpenWithdrawModal(c)}
-                      className="px-4 py-2 bg-amber-600 hover:bg-amber-700 text-white font-semibold text-xs rounded-lg transition-colors flex items-center gap-1.5 cursor-pointer shadow-xs"
+                      className="w-full sm:w-auto px-4 py-2 bg-amber-600 hover:bg-amber-700 text-white font-semibold text-xs rounded-lg transition-colors flex items-center justify-center gap-1.5 cursor-pointer shadow-xs"
                     >
                       <ArrowDownCircle className="w-3.5 h-3.5" />
                       <span>Milestone Withdrawal</span>
                     </button>
                   ) : (
-                    <div className="flex items-center gap-2">
+                    <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 w-full sm:w-auto">
                       <button
                         onClick={() => onOpenDonateModal && onOpenDonateModal(c)}
-                        className="px-3.5 py-2 bg-brand-600 hover:bg-brand-700 text-white font-semibold text-xs rounded-lg transition-colors flex items-center gap-1.5 cursor-pointer shadow-xs"
+                        className="w-full sm:w-auto px-3.5 py-2 bg-brand-600 hover:bg-brand-700 text-white font-semibold text-xs rounded-lg transition-colors flex items-center justify-center gap-1.5 cursor-pointer shadow-xs"
                       >
                         <Heart className="w-3.5 h-3.5" />
                         <span>Contribute</span>
                       </button>
                       <span
                         title="Only the registered campaign creator can execute withdrawals on Ethereum"
-                        className="px-3 py-2 bg-slate-100 text-slate-400 font-medium text-xs rounded-lg flex items-center gap-1.5 cursor-not-allowed select-none"
+                        className="w-full sm:w-auto px-3 py-2 bg-slate-100 text-slate-400 font-medium text-xs rounded-lg flex items-center justify-center gap-1.5 cursor-not-allowed select-none"
                       >
                         <Lock className="w-3 h-3" />
                         <span>Withdraw Locked</span>

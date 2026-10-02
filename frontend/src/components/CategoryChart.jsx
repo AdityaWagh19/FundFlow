@@ -39,9 +39,9 @@ export default function CategoryChart({ campaigns = [] }) {
         <span className="text-[10px] text-slate-400 font-medium">Real On-Chain Split</span>
       </div>
 
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between sm:justify-around lg:justify-between gap-4">
         {/* Donut Chart with Center Percentage */}
-        <div className="relative w-32 h-32">
+        <div className="relative w-32 h-32 shrink-0">
           <ResponsiveContainer width="100%" height="100%">
             <PieChart>
               <Pie
@@ -67,7 +67,7 @@ export default function CategoryChart({ campaigns = [] }) {
         </div>
 
         {/* Legend */}
-        <div className="space-y-1.5 pr-1 max-w-[130px]">
+        <div className="space-y-1.5 pr-1 flex-1 max-w-[180px] lg:max-w-[130px]">
           {data.map((item) => (
             <div key={item.name} className="flex items-center justify-between gap-2 text-xs">
               <div className="flex items-center gap-1.5 truncate">

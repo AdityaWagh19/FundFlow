@@ -45,7 +45,7 @@ export default function LiveFeed({ donations = [], campaigns = [] }) {
                     )}
                   </div>
                   <div>
-                    <div className="text-xs font-semibold text-slate-800 line-clamp-1 max-w-[150px]">
+                    <div className="text-xs font-semibold text-slate-800 line-clamp-1 max-w-[150px] sm:max-w-xs md:max-w-md lg:max-w-[170px]">
                       {tx.campaign || 'Humanitarian Cause'}
                     </div>
                     <div className="text-[10px] text-slate-400 flex items-center gap-1.5 mt-0.5">

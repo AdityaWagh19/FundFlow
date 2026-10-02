@@ -129,7 +129,7 @@ export default function WithdrawModal({ isOpen, onClose, campaign, onWithdrawSuc
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-xs">
-      <div className="bg-white rounded-xl max-w-md w-full p-6 shadow-xl border border-slate-100 relative">
+      <div className="bg-white rounded-xl max-w-md w-full p-5 sm:p-6 shadow-xl border border-slate-100 relative max-h-[92vh] overflow-y-auto">
         <button
           onClick={resetAndClose}
           className="absolute top-4 right-4 w-7 h-7 rounded-lg bg-slate-50 hover:bg-slate-100 flex items-center justify-center text-slate-400 hover:text-slate-700 transition-colors cursor-pointer"

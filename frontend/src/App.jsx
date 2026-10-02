@@ -13,6 +13,7 @@ import LiveFeed from './components/LiveFeed';
 import DonateModal from './modals/DonateModal';
 import CreateCampaignModal from './modals/CreateCampaignModal';
 import WithdrawModal from './modals/WithdrawModal';
+import DonationReceiptModal from './modals/DonationReceiptModal';
 
 // Pages
 import CampaignsPage from './pages/CampaignsPage';
@@ -43,6 +44,7 @@ export default function App() {
 
   const [activeTab, setActiveTab] = useState('overview');
   const [searchQuery, setSearchQuery] = useState('');
+  const [isMobileNavOpen, setIsMobileNavOpen] = useState(false);
 
   // Data states
   const [featuredCampaign, setFeaturedCampaign] = useState(INITIAL_FEATURED_CAMPAIGN);
@@ -68,6 +70,7 @@ export default function App() {
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [isWithdrawOpen, setIsWithdrawOpen] = useState(false);
   const [selectedCampaign, setSelectedCampaign] = useState(null);
+  const [activeReceipt, setActiveReceipt] = useState(null);
 
   // Load real on-chain campaigns, platform overview, and real donations
   const loadBlockchainData = useCallback(async () => {
@@ -290,29 +293,32 @@ export default function App() {
   );
 
   return (
-    <div className="min-h-screen bg-[#F8FAFC] flex font-sans antialiased text-slate-800">
-      {/* 1. Left Sidebar with Real Dynamic Badges */}
+    <div className="min-h-screen bg-[#F8FAFC] flex font-sans antialiased text-slate-800 relative">
+      {/* 1. Left Sidebar with Responsive Mobile Drawer */}
       <Sidebar
         activeTab={activeTab}
         setActiveTab={setActiveTab}
         onOpenCreateModal={() => setIsCreateOpen(true)}
         myDonationsCount={myDonations.length}
         ownedCampaignsCount={ownedCampaignsCount}
+        isOpen={isMobileNavOpen}
+        onClose={() => setIsMobileNavOpen(false)}
       />
 
       {/* 2. Main Content Frame */}
       <div className="flex-1 flex flex-col min-w-0">
-        {/* Top Header with Real Wallet-Bound Account Identity */}
+        {/* Top Header with Responsive Mobile Toggle */}
         <Header
           searchQuery={searchQuery}
           setSearchQuery={setSearchQuery}
           campaigns={campaigns}
           onSearchSubmit={() => setActiveTab('campaigns')}
           onNavigateTab={setActiveTab}
+          onToggleSidebar={() => setIsMobileNavOpen(!isMobileNavOpen)}
         />
 
         {/* Dashboard Body */}
-        <main className="p-6 md:p-8 flex-1 overflow-y-auto">
+        <main className="p-4 sm:p-6 lg:p-8 flex-1 overflow-y-auto">
           <div className="max-w-[1400px] mx-auto">
             {/* View 1: Overview / Main Dashboard */}
             {activeTab === 'overview' && (
@@ -371,6 +377,7 @@ export default function App() {
               <MyDonationsPage
                 myDonations={myDonations}
                 onExploreClick={() => setActiveTab('campaigns')}
+                onOpenReceipt={setActiveReceipt}
               />
             )}
 
@@ -410,6 +417,7 @@ export default function App() {
         onClose={() => setIsDonateOpen(false)}
         campaign={selectedCampaign}
         onDonationSuccess={handleDonationSuccess}
+        onOpenReceipt={setActiveReceipt}
       />
 
       <CreateCampaignModal
@@ -423,6 +431,13 @@ export default function App() {
         onClose={() => setIsWithdrawOpen(false)}
         campaign={selectedCampaign}
         onWithdrawSuccess={handleWithdrawSuccess}
+      />
+
+      {/* Official Cryptographic Donation Receipt Modal */}
+      <DonationReceiptModal
+        isOpen={Boolean(activeReceipt)}
+        onClose={() => setActiveReceipt(null)}
+        receipt={activeReceipt}
       />
     </div>
   );

@@ -20,17 +20,32 @@ export default function CampaignsPage({ campaigns, onDonateClick }) {
   return (
     <div className="space-y-6">
       {/* Page Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
           <h2 className="text-xl font-bold text-slate-800 tracking-tight">Active Fundraising Causes</h2>
           <p className="text-xs text-slate-400">Verified humanitarian campaigns across India with audited smart contract escrow</p>
         </div>
+      </div>
 
-        {/* Category Filter Chips (Clean rounded-lg, no pills) */}
-        <div className="flex items-center gap-1.5 overflow-x-auto pb-1">
+      {/* Responsive Filter & Search Controls */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 bg-white p-3 rounded-xl border border-slate-100 shadow-2xs">
+        {/* Search Input */}
+        <div className="relative w-full md:w-64 shrink-0">
+          <Search className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+          <input
+            type="text"
+            placeholder="Search causes, keywords..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="w-full pl-8 pr-3 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-brand-500 focus:bg-white"
+          />
+        </div>
+
+        {/* Category Filter Chips with no-scrollbar */}
+        <div className="flex items-center gap-1.5 overflow-x-auto pb-1 sm:pb-0 max-w-full no-scrollbar">
           <button
             onClick={() => setSelectedCategory('all')}
-            className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-colors shrink-0 ${
+            className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-colors shrink-0 cursor-pointer ${
               selectedCategory === 'all'
                 ? 'bg-brand-600 text-white'
                 : 'bg-white border border-slate-200 text-slate-600 hover:border-brand-500'
@@ -42,7 +57,7 @@ export default function CampaignsPage({ campaigns, onDonateClick }) {
             <button
               key={cat.id}
               onClick={() => setSelectedCategory(cat.id)}
-              className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-colors shrink-0 ${
+              className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-colors shrink-0 cursor-pointer ${
                 selectedCategory === cat.id
                   ? 'bg-brand-600 text-white'
                   : 'bg-white border border-slate-200 text-slate-600 hover:border-brand-500'
@@ -55,7 +70,7 @@ export default function CampaignsPage({ campaigns, onDonateClick }) {
       </div>
 
       {/* Grid of Campaign Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
         {filtered.map((c) => {
           const percent = c.percent || Math.min(100, Math.round(((Number(c.amountCollected) || 0) / (Number(c.targetAmount) || 1)) * 100));
           const cat = CATEGORIES.find((item) => item.id === c.category) || CATEGORIES[0];
