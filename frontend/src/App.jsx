@@ -69,6 +69,14 @@ export default function App() {
           const target = Number(c.targetAmount) / 1e18;
           const collected = Number(c.amountCollected) / 1e18;
           const percent = Math.min(100, Math.round((collected / (target || 1)) * 100));
+          const matchingInit = INITIAL_CAMPAIGNS.find((item) => item.id === Number(c.id));
+          const defaultIndianLocations = [
+            "Pune & Nashik, Maharashtra",
+            "Wayanad, Kerala",
+            "AIIMS & Sassoon General Hospital, Pune",
+            "Chhatrapati Sambhajinagar, Maharashtra",
+            "Dharavi, Mumbai, Maharashtra",
+          ];
 
           return {
             id: Number(c.id),
@@ -78,6 +86,7 @@ export default function App() {
             category: Number(c.category),
             targetAmount: target.toString(),
             amountCollected: collected.toFixed(3),
+            location: matchingInit?.location || defaultIndianLocations[idx % defaultIndianLocations.length],
             image: c.imageIpfsHash || INITIAL_CAMPAIGNS[idx % INITIAL_CAMPAIGNS.length].image,
             percent,
             raisedFormatted: `₹${(collected * ETH_TO_INR_RATE).toLocaleString('en-IN')}`,
