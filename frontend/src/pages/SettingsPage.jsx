@@ -90,7 +90,7 @@ export default function SettingsPage() {
                       type="text"
                       value={displayName}
                       onChange={(e) => setDisplayName(e.target.value)}
-                      placeholder="e.g. Aditya Wagh"
+                      placeholder="e.g. Lead Organizer"
                       className="w-full px-3 py-1.5 bg-white border border-slate-200 rounded-lg text-xs focus:outline-none focus:ring-1 focus:ring-brand-500"
                     />
                   </div>

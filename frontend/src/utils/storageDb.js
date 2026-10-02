@@ -124,10 +124,10 @@ export const getUserProfile = (account) => {
     // Default profile for the contract deployer / organizer
     if (account.toLowerCase() === '0x76b70b73d7101c711f295da6bd6b28cdd6721a72') {
       return {
-        name: 'Aditya Wagh',
+        name: 'Verified Campaign Organizer',
         organization: 'FundFlow India Foundation (Registered NGO)',
         role: 'Verified Organizer',
-        bio: 'Lead organizer of Maharashtra school digitisation and Wayanad flood relief',
+        bio: 'Lead organizer of Maharashtra school digitisation and humanitarian relief initiatives',
         isVerified: true,
       };
     }

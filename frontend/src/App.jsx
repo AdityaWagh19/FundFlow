@@ -189,15 +189,10 @@ export default function App() {
       )
     : [];
 
-  // Compute campaigns owned based on active role mode
-  const ownedCampaignsCount =
-    roleMode === 'donor'
-      ? 0
-      : roleMode === 'organizer'
-      ? campaigns.length
-      : account
-      ? campaigns.filter((c) => (c.organizer || '').toLowerCase() === account.toLowerCase()).length
-      : 0;
+  // Compute campaigns owned by connected wallet
+  const ownedCampaignsCount = account
+    ? campaigns.filter((c) => isCampaignOrganizer(c, account)).length
+    : 0;
 
   const handleOpenDonate = (campaignToDonate) => {
     setSelectedCampaign(campaignToDonate || featuredCampaign);
@@ -296,7 +291,7 @@ export default function App() {
         setActiveTab={setActiveTab}
         onOpenCreateModal={() => setIsCreateOpen(true)}
         myDonationsCount={myDonations.length}
-        ownedCampaignsCount={account ? campaigns.filter((c) => isCampaignOrganizer(c, account)).length : 0}
+        ownedCampaignsCount={ownedCampaignsCount}
       />
 
       {/* 2. Main Content Frame */}
@@ -376,8 +371,10 @@ export default function App() {
             {/* View 4: Wallet & Treasury */}
             {activeTab === 'wallet' && <WalletPage />}
 
-            {/* View 5: Analysis */}
-            {activeTab === 'analysis' && <AnalysisPage />}
+            {/* View 5: Analysis (100% Dynamic On-Chain Metrics) */}
+            {activeTab === 'analysis' && (
+              <AnalysisPage campaigns={campaigns} donations={donations} />
+            )}
 
             {/* View 6: Campaign Admin / Organizer Portal */}
             {activeTab === 'campaign-admin' && (
