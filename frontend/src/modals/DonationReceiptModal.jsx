@@ -1,42 +1,38 @@
 import React, { useRef, useState } from 'react';
 import {
   X,
-  Download,
-  Share2,
+  MoreHorizontal,
   Printer,
   ExternalLink,
-  ShieldCheck,
+  Share2,
   Check,
-  Award,
-  Layers,
-  Heart,
-  QrCode,
-  Sparkles,
   Copy,
 } from 'lucide-react';
 import html2canvas from 'html2canvas';
-import { DEFAULT_CONTRACT_ADDRESS, ETH_TO_INR_RATE } from '../utils/constants';
+import { DEFAULT_CONTRACT_ADDRESS } from '../utils/constants';
 
 export default function DonationReceiptModal({ isOpen, onClose, receipt }) {
   const receiptRef = useRef(null);
   const [isGenerating, setIsGenerating] = useState(false);
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [copiedLink, setCopiedLink] = useState(false);
-  const [copiedProof, setCopiedProof] = useState(false);
 
   if (!isOpen || !receipt) return null;
 
   const {
-    donor = 'Anonymous Philanthropist',
+    donor = 'Verified Contributor',
     donorAddress = '0x...',
-    campaignTitle = 'Humanitarian Aid Initiative',
-    campaignCategory = 'Social Impact',
-    ethAmount = '0.05',
+    campaignTitle = 'Humanitarian Cause',
+    campaignCategory = 'Grassroots Relief',
+    ethAmount = '0.05 ETH',
     inrAmount = '₹14,250',
     txHash = '0x...',
     blockNumber = '6842918',
-    timestamp = new Date().toLocaleString('en-IN', {
-      dateStyle: 'medium',
-      timeStyle: 'short',
+    timestamp = new Date().toLocaleDateString('en-US', {
+      weekday: 'long',
+      day: 'numeric',
+      month: 'short',
+      year: 'numeric',
     }),
     receiptId = `FF-${Date.now().toString(36).toUpperCase()}`,
   } = receipt;
@@ -46,7 +42,7 @@ export default function DonationReceiptModal({ isOpen, onClose, receipt }) {
       ? `https://sepolia.etherscan.io/tx/${txHash}`
       : `https://sepolia.etherscan.io/address/${DEFAULT_CONTRACT_ADDRESS}`;
 
-  // 1. Download as High-Resolution PNG Image (Optimized for Social Sharing)
+  // 1. Download as High-Resolution PNG Image (matching receipt template)
   const handleDownloadImage = async () => {
     if (!receiptRef.current) return;
     try {
@@ -60,7 +56,7 @@ export default function DonationReceiptModal({ isOpen, onClose, receipt }) {
 
       const dataUrl = canvas.toDataURL('image/png');
       const link = document.createElement('a');
-      link.download = `FundFlow-Donation-Certificate-${receiptId}.png`;
+      link.download = `Payment-Record-${receiptId}.png`;
       link.href = dataUrl;
       link.click();
     } catch (err) {
@@ -78,10 +74,10 @@ export default function DonationReceiptModal({ isOpen, onClose, receipt }) {
   // 3. Share to Twitter / X
   const handleShareTwitter = () => {
     const text = encodeURIComponent(
-      `I just contributed ${ethAmount} (${inrAmount}) to support "${campaignTitle}" on @FundFlow!\n\n` +
-      `Verified on Ethereum blockchain with 0% middleman fees.\n\n` +
-      `Transparent receipt: ${etherscanUrl}\n\n` +
-      `#FundFlow #Web3ForGood #EthereumPhilanthropy`
+      `Official Payment Record: Contributed ${ethAmount} (${inrAmount}) to "${campaignTitle}" via @FundFlow!\n\n` +
+      `Direct peer-to-contract escrow with 0% platform fee.\n\n` +
+      `Audit link: ${etherscanUrl}\n\n` +
+      `#FundFlow #Web3Philanthropy`
     );
     window.open(`https://twitter.com/intent/tweet?text=${text}`, '_blank');
   };
@@ -89,8 +85,7 @@ export default function DonationReceiptModal({ isOpen, onClose, receipt }) {
   // 4. Share to WhatsApp
   const handleShareWhatsApp = () => {
     const text = encodeURIComponent(
-      `Proud to support "${campaignTitle}" with ${ethAmount} (${inrAmount}) via FundFlow! ` +
-      `Every rupee is verified on Ethereum with 0% intermediary fee. View receipt: ${etherscanUrl}`
+      `Payment Record: Verified contribution of ${ethAmount} (${inrAmount}) to "${campaignTitle}" on FundFlow with 0% intermediary fee! Audit link: ${etherscanUrl}`
     );
     window.open(`https://api.whatsapp.com/send?text=${text}`, '_blank');
   };
@@ -103,218 +98,197 @@ export default function DonationReceiptModal({ isOpen, onClose, receipt }) {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-900/60 backdrop-blur-xs overflow-y-auto">
-      <div className="bg-white rounded-2xl max-w-xl w-full p-4 sm:p-6 shadow-2xl border border-slate-100 relative my-auto sm:my-8 max-h-[92vh] overflow-y-auto">
-        {/* Close Button */}
-        <button
-          onClick={onClose}
-          className="absolute top-4 right-4 w-8 h-8 rounded-lg bg-slate-50 hover:bg-slate-100 flex items-center justify-center text-slate-400 hover:text-slate-700 transition-colors cursor-pointer"
-        >
-          <X className="w-4 h-4" />
-        </button>
-
-        {/* Modal Header */}
-        <div className="flex items-center gap-2.5 mb-5 pb-3 border-b border-slate-100 pr-8">
-          <div className="w-8 h-8 rounded-lg bg-brand-50 text-brand-600 flex items-center justify-center shrink-0">
-            <Award className="w-4 h-4" />
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-900/50 backdrop-blur-xs overflow-y-auto">
+      <div className="bg-white rounded-3xl max-w-md w-full p-6 sm:p-8 shadow-2xl border border-slate-100 relative my-auto max-h-[92vh] overflow-y-auto">
+        {/* Printable & Exportable Canvas Area */}
+        <div ref={receiptRef} className="bg-white">
+          {/* Header */}
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="text-lg font-bold text-slate-900 tracking-tight">Payment Record</h2>
+            <button
+              onClick={onClose}
+              className="w-7 h-7 rounded-full hover:bg-slate-100 flex items-center justify-center text-slate-400 hover:text-slate-700 transition-colors cursor-pointer print:hidden"
+            >
+              <X className="w-4 h-4" />
+            </button>
           </div>
-          <div>
-            <h3 className="text-sm font-bold text-slate-800 tracking-tight">
-              Cryptographic Donation Certificate
-            </h3>
-            <p className="text-[11px] text-slate-400">
-              Auditable on-chain proof of philanthropy ready for download and social sharing
-            </p>
-          </div>
-        </div>
 
-        {/* Printable & Exportable Certificate Canvas Container */}
-        <div className="p-1 bg-gradient-to-br from-brand-600/10 via-indigo-600/5 to-emerald-500/10 rounded-xl mb-5">
-          <div
-            ref={receiptRef}
-            className="bg-white p-4 sm:p-7 rounded-xl border border-slate-200/80 shadow-xs relative overflow-hidden text-slate-800 print:shadow-none print:border-none"
-          >
-            {/* Top Subtle Watermark Banner */}
-            <div className="absolute -top-10 -right-10 w-32 h-32 rounded-full bg-brand-500/5 pointer-events-none"></div>
-
-            {/* Certificate Header Row */}
-            <div className="flex items-start justify-between gap-4 pb-4 border-b border-slate-100">
-              <div className="flex items-center gap-2.5">
-                <div className="w-9 h-9 rounded-lg bg-brand-600 text-white flex items-center justify-center shadow-xs">
-                  <Layers className="w-5 h-5" />
+          {/* Subheader: Company & Job */}
+          <div className="grid grid-cols-2 gap-4 mb-6">
+            {/* Left Column: Company */}
+            <div>
+              <div className="text-xs text-slate-400 font-medium mb-1.5">Company</div>
+              <div className="flex items-center gap-2 mb-2.5">
+                <div className="w-6 h-6 rounded-md bg-slate-900 text-white flex items-center justify-center shrink-0">
+                  <div className="w-3.5 h-3.5 rounded-xs border-2 border-white"></div>
                 </div>
-                <div>
-                  <div className="text-base font-bold tracking-tight text-slate-900">FundFlow</div>
-                  <div className="text-[10px] uppercase tracking-wider text-slate-400 font-semibold">
-                    Transparent Blockchain Philanthropy
-                  </div>
-                </div>
-              </div>
-
-              <div className="text-right">
-                <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-md text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200/60">
-                  <ShieldCheck className="w-3 h-3 text-emerald-600" />
-                  <span>100% On-Chain Escrow</span>
-                </span>
-                <div className="text-[10px] font-mono text-slate-400 mt-1">
-                  Cert #{receiptId}
-                </div>
-              </div>
-            </div>
-
-            {/* Certificate Title */}
-            <div className="text-center py-5">
-              <div className="text-[11px] uppercase tracking-widest font-bold text-brand-600 mb-1">
-                Certificate of Contribution
-              </div>
-              <h4 className="text-lg sm:text-xl font-extrabold text-slate-900 tracking-tight">
-                Verified Philanthropic Grant
-              </h4>
-              <p className="text-xs text-slate-500 max-w-sm mx-auto mt-1">
-                This certifies that a direct, trustless contribution was recorded in the Ethereum smart contract escrow.
-              </p>
-            </div>
-
-            {/* Highlighted Amount Card */}
-            <div className="bg-gradient-to-br from-slate-50 to-blue-50/40 p-4 rounded-xl border border-slate-100 text-center mb-5">
-              <div className="text-[10px] uppercase tracking-wider text-slate-400 font-bold mb-0.5">
-                Total Contribution Value
-              </div>
-              <div className="text-2xl sm:text-3xl font-extrabold text-brand-600 font-mono tracking-tight">
-                {inrAmount}
-              </div>
-              <div className="text-xs font-semibold text-slate-600 font-mono mt-0.5">
-                {ethAmount} on Ethereum Sepolia EVM
-              </div>
-            </div>
-
-            {/* Grant Details Breakdown */}
-            <div className="space-y-2.5 text-xs pb-4 border-b border-slate-100">
-              <div className="flex items-center justify-between">
-                <span className="text-slate-400">Beneficiary Cause:</span>
-                <span className="font-bold text-slate-800 text-right max-w-[260px] truncate">
+                <span className="text-xs font-bold text-slate-800 truncate" title={campaignTitle}>
                   {campaignTitle}
                 </span>
               </div>
-
-              <div className="flex items-center justify-between">
-                <span className="text-slate-400">Aid Sector:</span>
-                <span className="font-semibold text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded-sm text-[11px]">
-                  {campaignCategory}
+              <div className="flex items-center gap-1.5 flex-wrap">
+                <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-amber-50 text-amber-700 border border-amber-200/50">
+                  <span className="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
+                  <span>Confirmed</span>
                 </span>
-              </div>
-
-              <div className="flex items-center justify-between">
-                <span className="text-slate-400">Contributing Wallet:</span>
-                <span className="font-mono text-slate-700 font-semibold">
-                  {donorAddress.length > 12 ? `${donorAddress.slice(0, 6)}...${donorAddress.slice(-4)}` : donorAddress}
+                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-indigo-50 text-indigo-600">
+                  Direct Escrow
                 </span>
-              </div>
-
-              <div className="flex items-center justify-between">
-                <span className="text-slate-400">Transaction Timestamp:</span>
-                <span className="text-slate-600">{timestamp}</span>
-              </div>
-
-              <div className="flex items-center justify-between">
-                <span className="text-slate-400">Intermediary Take-Rate:</span>
-                <span className="font-bold text-emerald-600">0.00% (Direct Peer-to-Contract)</span>
               </div>
             </div>
 
-            {/* Blockchain Technical Verification Footer */}
-            <div className="pt-4 flex flex-col sm:flex-row items-center justify-between gap-3 text-[11px]">
-              <div className="space-y-1 text-slate-400 max-w-[280px]">
-                <div className="flex items-center gap-1 text-slate-600 font-mono">
-                  <span className="font-bold text-[10px] text-slate-400 uppercase">Smart Contract:</span>
-                  <span className="truncate">{DEFAULT_CONTRACT_ADDRESS.slice(0, 8)}...{DEFAULT_CONTRACT_ADDRESS.slice(-6)}</span>
-                </div>
-                <div className="flex items-center gap-1 font-mono text-[10px]">
-                  <span>Tx Hash:</span>
-                  <span className="text-slate-600 truncate">{txHash.slice(0, 16)}...</span>
+            {/* Right Column: Job */}
+            <div>
+              <div className="text-xs text-slate-400 font-medium mb-1.5">Job</div>
+              <div className="text-xs font-semibold text-slate-800 leading-snug line-clamp-2">
+                {campaignCategory} / Verified Grant
+              </div>
+            </div>
+          </div>
+
+          {/* Middle Rounded Box with Timeline Line Items */}
+          <div className="rounded-2xl border border-slate-200/90 p-4 space-y-3.5 mb-6 bg-white">
+            {/* Row 1 */}
+            <div className="flex items-start justify-between">
+              <div>
+                <div className="text-xs font-semibold text-slate-800">Smart Contract Escrow</div>
+                <div className="text-[11px] text-slate-400 mt-0.5">{timestamp}</div>
+              </div>
+              <div className="text-xs font-mono font-medium text-slate-700">Block #{blockNumber}</div>
+            </div>
+
+            <div className="border-b border-slate-100"></div>
+
+            {/* Row 2 */}
+            <div className="flex items-start justify-between">
+              <div>
+                <div className="text-xs font-semibold text-slate-800">Milestone Vault Allocation</div>
+                <div className="text-[11px] text-slate-400 mt-0.5">Grassroots Beneficiary Deployment</div>
+              </div>
+              <div className="text-xs font-mono font-medium text-slate-700">0% Intermediary</div>
+            </div>
+
+            <div className="border-b border-slate-100"></div>
+
+            {/* Row 3 */}
+            <div className="flex items-start justify-between">
+              <div>
+                <div className="text-xs font-semibold text-slate-800">Immutable Audit Ledger</div>
+                <div className="text-[11px] font-mono text-slate-400 mt-0.5 truncate max-w-[170px]">
+                  {txHash && txHash.length > 18 ? `${txHash.slice(0, 16)}...` : txHash}
                 </div>
               </div>
+              <div className="text-xs font-semibold text-emerald-600">Verified</div>
+            </div>
 
-              {/* Verified Hologram Emblem */}
-              <div className="flex items-center gap-2 p-2 rounded-lg bg-emerald-50/80 border border-emerald-200/60 shrink-0">
-                <div className="w-6 h-6 rounded-full bg-emerald-600 text-white flex items-center justify-center font-bold text-xs">
-                  ✓
-                </div>
-                <div className="text-left">
-                  <div className="text-[10px] font-bold text-emerald-800 uppercase leading-none">
-                    EVM Verified
-                  </div>
-                  <div className="text-[9px] text-emerald-600 font-mono mt-0.5">
-                    Immutable Record
-                  </div>
-                </div>
+            <div className="border-b border-slate-100"></div>
+
+            {/* Total Indicator in Emerald */}
+            <div className="text-right">
+              <span className="text-xs font-bold text-emerald-600 font-mono">Total Direct 100%</span>
+            </div>
+          </div>
+
+          {/* Financial Breakdown Section */}
+          <div className="space-y-2 mb-6">
+            <div className="flex items-center justify-between text-xs text-slate-700">
+              <span className="font-medium">Gross Contribution</span>
+              <span className="font-bold text-slate-900 font-mono">{inrAmount}</span>
+            </div>
+
+            <div className="flex items-center justify-between text-xs text-slate-700">
+              <span className="font-medium">Platform Commission</span>
+              <span className="font-mono text-slate-500">- ₹0.00 (0%)</span>
+            </div>
+
+            <div className="pt-2 text-right">
+              <div className="text-xs font-bold text-emerald-600">Take Home</div>
+              <div className="text-3xl font-extrabold text-emerald-600 font-mono tracking-tight mt-0.5">
+                {inrAmount}
+              </div>
+              <div className="text-[11px] text-slate-400 font-mono mt-0.5">
+                {ethAmount} on Ethereum Sepolia
               </div>
             </div>
           </div>
         </div>
 
-        {/* Action Buttons: Download PNG, Print PDF, Share on Socials */}
-        <div className="space-y-3">
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+        {/* Bottom Actions Bar */}
+        <div className="flex items-center justify-end gap-2 pt-2 border-t border-slate-100 print:hidden relative">
+          <button
+            onClick={handleDownloadImage}
+            disabled={isGenerating}
+            className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-800 font-semibold text-xs rounded-xl transition-colors cursor-pointer shadow-2xs disabled:opacity-50"
+          >
+            {isGenerating ? 'Exporting...' : 'Export Invoice'}
+          </button>
+
+          <div className="relative">
             <button
-              onClick={handleDownloadImage}
-              disabled={isGenerating}
-              className="py-2.5 px-4 bg-brand-600 hover:bg-brand-700 text-white font-semibold text-xs rounded-xl transition-colors flex items-center justify-center gap-2 cursor-pointer shadow-xs disabled:opacity-50"
+              onClick={() => setIsMenuOpen(!isMenuOpen)}
+              className="w-9 h-9 rounded-xl bg-slate-100 hover:bg-slate-200 flex items-center justify-center text-slate-700 transition-colors cursor-pointer"
+              title="More actions"
             >
-              <Download className="w-3.5 h-3.5" />
-              <span>{isGenerating ? 'Rendering Image...' : 'Download Image (PNG)'}</span>
+              <MoreHorizontal className="w-4 h-4" />
             </button>
 
-            <button
-              onClick={handlePrint}
-              className="py-2.5 px-4 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold text-xs rounded-xl transition-colors flex items-center justify-center gap-2 cursor-pointer"
-            >
-              <Printer className="w-3.5 h-3.5" />
-              <span>Print / Save PDF</span>
-            </button>
-          </div>
+            {isMenuOpen && (
+              <div className="absolute right-0 bottom-full mb-2 w-56 bg-white rounded-xl shadow-xl border border-slate-100 p-1.5 text-xs space-y-1 z-30">
+                <button
+                  onClick={() => {
+                    handlePrint();
+                    setIsMenuOpen(false);
+                  }}
+                  className="w-full flex items-center gap-2 p-2 rounded-lg hover:bg-slate-50 text-slate-700 font-medium cursor-pointer"
+                >
+                  <Printer className="w-3.5 h-3.5 text-slate-500" />
+                  <span>Print / Save as PDF</span>
+                </button>
 
-          {/* Social Share Bar */}
-          <div className="pt-2 border-t border-slate-100">
-            <div className="flex flex-col xs:flex-row xs:items-center justify-between gap-1 text-xs text-slate-500 mb-2">
-              <span className="font-medium flex items-center gap-1.5">
-                <Share2 className="w-3.5 h-3.5 text-brand-600 shrink-0" />
-                <span>Share Verification on Socials:</span>
-              </span>
-              <button
-                onClick={handleCopyLink}
-                className="text-brand-600 hover:underline flex items-center gap-1 font-semibold cursor-pointer self-start xs:self-auto"
-              >
-                {copiedLink ? <Check className="w-3.5 h-3.5 text-emerald-600" /> : <Copy className="w-3.5 h-3.5" />}
-                <span>{copiedLink ? 'Link Copied!' : 'Copy Explorer Link'}</span>
-              </button>
-            </div>
+                <button
+                  onClick={() => {
+                    handleShareTwitter();
+                    setIsMenuOpen(false);
+                  }}
+                  className="w-full flex items-center gap-2 p-2 rounded-lg hover:bg-slate-50 text-slate-700 font-medium cursor-pointer"
+                >
+                  <Share2 className="w-3.5 h-3.5 text-slate-500" />
+                  <span>Share on X (Twitter)</span>
+                </button>
 
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
-              <button
-                onClick={handleShareTwitter}
-                className="py-2 px-3 bg-slate-900 hover:bg-black text-white font-semibold text-xs rounded-lg transition-colors flex items-center justify-center gap-1.5 cursor-pointer"
-              >
-                <span>Post on X (Twitter)</span>
-              </button>
+                <button
+                  onClick={() => {
+                    handleShareWhatsApp();
+                    setIsMenuOpen(false);
+                  }}
+                  className="w-full flex items-center gap-2 p-2 rounded-lg hover:bg-slate-50 text-slate-700 font-medium cursor-pointer"
+                >
+                  <span className="text-emerald-500 font-bold">💬</span>
+                  <span>Share on WhatsApp</span>
+                </button>
 
-              <button
-                onClick={handleShareWhatsApp}
-                className="py-2 px-3 bg-[#25D366] hover:bg-[#20BA5A] text-white font-semibold text-xs rounded-lg transition-colors flex items-center justify-center gap-1.5 cursor-pointer"
-              >
-                <span>WhatsApp</span>
-              </button>
+                <a
+                  href={etherscanUrl}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="w-full flex items-center gap-2 p-2 rounded-lg hover:bg-slate-50 text-slate-700 font-medium cursor-pointer"
+                >
+                  <ExternalLink className="w-3.5 h-3.5 text-slate-500" />
+                  <span>View on Sepolia Etherscan</span>
+                </a>
 
-              <a
-                href={etherscanUrl}
-                target="_blank"
-                rel="noreferrer"
-                className="py-2 px-3 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold text-xs rounded-lg transition-colors flex items-center justify-center gap-1.5"
-              >
-                <span>Sepolia Explorer</span>
-                <ExternalLink className="w-3 h-3 text-slate-400" />
-              </a>
-            </div>
+                <button
+                  onClick={() => {
+                    handleCopyLink();
+                    setIsMenuOpen(false);
+                  }}
+                  className="w-full flex items-center gap-2 p-2 rounded-lg hover:bg-slate-50 text-slate-700 font-medium cursor-pointer"
+                >
+                  {copiedLink ? <Check className="w-3.5 h-3.5 text-emerald-600" /> : <Copy className="w-3.5 h-3.5 text-slate-500" />}
+                  <span>{copiedLink ? 'Link Copied!' : 'Copy Verification Link'}</span>
+                </button>
+              </div>
+            )}
           </div>
         </div>
       </div>

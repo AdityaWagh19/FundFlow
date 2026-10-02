@@ -24,19 +24,19 @@ export default function Sidebar({
   onClose = () => {},
 }) {
   const generalNav = [
-    { id: 'overview', label: 'Overview', icon: LayoutDashboard },
-    { id: 'campaigns', label: 'List', icon: List },
+    { id: 'overview', label: 'Dashboard', icon: LayoutDashboard },
+    { id: 'campaigns', label: 'Explore Causes', icon: List },
     {
       id: 'my-donations',
-      label: 'My Donate',
+      label: 'My Donations',
       icon: HeartHandshake,
       badge: myDonationsCount > 0 ? myDonationsCount : null,
     },
-    { id: 'wallet', label: 'Wallet', icon: Wallet },
-    { id: 'analysis', label: 'Analysis', icon: BarChart3 },
+    { id: 'wallet', label: 'Wallet & Treasury', icon: Wallet },
+    { id: 'analysis', label: 'Impact Analytics', icon: BarChart3 },
     {
       id: 'campaign-admin',
-      label: 'Campaign',
+      label: 'Organizer Portal',
       icon: Megaphone,
       badge: ownedCampaignsCount > 0 ? ownedCampaignsCount : null,
     },
@@ -44,8 +44,8 @@ export default function Sidebar({
 
   const settingsNav = [
     { id: 'settings', label: 'Settings', icon: Settings },
-    { id: 'help', label: 'Help', icon: HelpCircle },
-    { id: 'about', label: 'About', icon: Info },
+    { id: 'help', label: 'Help & FAQs', icon: HelpCircle },
+    { id: 'about', label: 'About Protocol', icon: Info },
   ];
 
   const handleNavClick = (id) => {
