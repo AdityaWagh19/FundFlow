@@ -1,9 +1,12 @@
 import React, { useState } from 'react';
 import SafeImage from '../components/SafeImage';
 import { CATEGORIES } from '../utils/constants';
-import { Search, MapPin, Target, Sparkles, Filter } from 'lucide-react';
+import { Search, MapPin, Target, Sparkles, Filter, UserCheck, Lock } from 'lucide-react';
+import { useWeb3 } from '../context/Web3Context';
+import { isCampaignOrganizer } from '../utils/storageDb';
 
 export default function CampaignsPage({ campaigns, onDonateClick }) {
+  const { account } = useWeb3();
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [search, setSearch] = useState('');
 
@@ -73,15 +76,30 @@ export default function CampaignsPage({ campaigns, onDonateClick }) {
                   <div className="absolute top-2.5 left-2.5 px-2 py-0.5 rounded-md text-[10px] font-bold bg-white/95 text-slate-700 shadow-xs">
                     {cat.name}
                   </div>
+                  {isCampaignOrganizer(c, account) && (
+                    <div className="absolute top-2.5 right-2.5 px-2 py-0.5 rounded-md text-[10px] font-bold bg-indigo-600 text-white shadow-xs flex items-center gap-1">
+                      <UserCheck className="w-3 h-3" />
+                      <span>Your Cause</span>
+                    </div>
+                  )}
                 </div>
 
-                {/* Location if present */}
-                {c.location && (
-                  <div className="flex items-center gap-1 text-[11px] text-slate-400 mb-1">
-                    <MapPin className="w-3 h-3 text-brand-600 shrink-0" />
-                    <span>{c.location}</span>
-                  </div>
-                )}
+                {/* Location & Organizer */}
+                <div className="flex items-center justify-between gap-1 text-[11px] text-slate-400 mb-1">
+                  {c.location ? (
+                    <div className="flex items-center gap-1">
+                      <MapPin className="w-3 h-3 text-brand-600 shrink-0" />
+                      <span className="truncate max-w-[140px]">{c.location}</span>
+                    </div>
+                  ) : <div></div>}
+                  <span className="font-mono text-[10px] text-slate-400">
+                    {isCampaignOrganizer(c, account) ? (
+                      <span className="text-indigo-600 font-semibold">You (Organizer)</span>
+                    ) : (
+                      `By: ${c.organizer ? `${c.organizer.slice(0, 6)}...` : 'On-Chain'}`
+                    )}
+                  </span>
+                </div>
 
                 {/* Title & Description */}
                 <h3 className="text-sm font-bold text-slate-800 tracking-tight mb-1.5 line-clamp-1">

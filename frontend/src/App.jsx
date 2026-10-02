@@ -33,10 +33,9 @@ import {
 } from './utils/constants';
 import {
   getStoredDonations,
-  getStoredRole,
-  setStoredRole,
   storeCreatedCampaign,
   getStoredCreatedCampaigns,
+  isCampaignOrganizer,
 } from './utils/storageDb';
 
 export default function App() {
@@ -44,12 +43,6 @@ export default function App() {
 
   const [activeTab, setActiveTab] = useState('overview');
   const [searchQuery, setSearchQuery] = useState('');
-  const [roleMode, setRoleMode] = useState(() => getStoredRole());
-
-  const handleSetRoleMode = (newMode) => {
-    setRoleMode(newMode);
-    setStoredRole(newMode);
-  };
 
   // Data states
   const [featuredCampaign, setFeaturedCampaign] = useState(INITIAL_FEATURED_CAMPAIGN);
@@ -303,17 +296,16 @@ export default function App() {
         setActiveTab={setActiveTab}
         onOpenCreateModal={() => setIsCreateOpen(true)}
         myDonationsCount={myDonations.length}
-        ownedCampaignsCount={ownedCampaignsCount}
+        ownedCampaignsCount={account ? campaigns.filter((c) => isCampaignOrganizer(c, account)).length : 0}
       />
 
       {/* 2. Main Content Frame */}
       <div className="flex-1 flex flex-col min-w-0">
-        {/* Top Header */}
+        {/* Top Header with Real Wallet-Bound Account Identity */}
         <Header
           searchQuery={searchQuery}
           setSearchQuery={setSearchQuery}
-          roleMode={roleMode}
-          setRoleMode={handleSetRoleMode}
+          campaigns={campaigns}
           onSearchSubmit={() => setActiveTab('campaigns')}
           onNavigateTab={setActiveTab}
         />
@@ -332,8 +324,10 @@ export default function App() {
                     onDonateClick={handleOpenDonate}
                   />
 
-                  {/* 3 Metric Statistic Cards */}
+                  {/* 3 Metric Statistic Cards - 100% Dynamic */}
                   <StatCards
+                    campaigns={campaigns}
+                    donations={donations}
                     totalDonations={stats.totalDonations}
                     totalEth={stats.totalEth}
                     totalDonors={stats.totalDonors}
@@ -354,11 +348,11 @@ export default function App() {
                   {/* Wallet Card with Real Web3 Telemetry */}
                   <WalletWidget />
 
-                  {/* Donation Categories Donut Chart */}
-                  <CategoryChart />
+                  {/* Donation Categories Donut Chart - 100% Dynamic */}
+                  <CategoryChart campaigns={campaigns} />
 
-                  {/* Live Donation Micro-Transactions Feed */}
-                  <LiveFeed transactions={transactions} />
+                  {/* Live Donation Micro-Transactions Feed - 100% Dynamic */}
+                  <LiveFeed donations={donations} campaigns={campaigns} />
                 </div>
               </div>
             )}
@@ -392,18 +386,11 @@ export default function App() {
                 onOpenCreateModal={() => setIsCreateOpen(true)}
                 onOpenWithdrawModal={handleOpenWithdraw}
                 onOpenDonateModal={handleOpenDonate}
-                roleMode={roleMode}
-                setRoleMode={handleSetRoleMode}
               />
             )}
 
             {/* View 7: Settings */}
-            {activeTab === 'settings' && (
-              <SettingsPage
-                roleMode={roleMode}
-                setRoleMode={handleSetRoleMode}
-              />
-            )}
+            {activeTab === 'settings' && <SettingsPage />}
 
             {/* View 8: Help & FAQs */}
             {activeTab === 'help' && <HelpPage onNavigateTab={setActiveTab} />}
@@ -433,7 +420,6 @@ export default function App() {
         onClose={() => setIsWithdrawOpen(false)}
         campaign={selectedCampaign}
         onWithdrawSuccess={handleWithdrawSuccess}
-        isSimulatedOrganizer={roleMode === 'organizer'}
       />
     </div>
   );

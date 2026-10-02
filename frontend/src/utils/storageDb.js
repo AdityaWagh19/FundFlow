@@ -104,3 +104,63 @@ export const storeCreatedCampaign = (campaign) => {
     return [];
   }
 };
+
+// --- Web3 Account Profiles (Attached to Connected Wallet) ---
+export const getUserProfile = (account) => {
+  if (!account) {
+    return {
+      name: 'Guest Visitor',
+      organization: 'Public Donor',
+      role: 'Donor',
+      bio: 'Connect MetaMask wallet to participate in on-chain giving',
+    };
+  }
+
+  try {
+    const key = `fundflow_profile_${account.toLowerCase()}`;
+    const raw = localStorage.getItem(key);
+    if (raw) return JSON.parse(raw);
+
+    // Default profile for the contract deployer / organizer
+    if (account.toLowerCase() === '0x76b70b73d7101c711f295da6bd6b28cdd6721a72') {
+      return {
+        name: 'Aditya Wagh',
+        organization: 'FundFlow India Foundation (Registered NGO)',
+        role: 'Verified Organizer',
+        bio: 'Lead organizer of Maharashtra school digitisation and Wayanad flood relief',
+        isVerified: true,
+      };
+    }
+
+    return {
+      name: `Benefactor (${account.slice(2, 6)})`,
+      organization: 'Individual Contributor',
+      role: 'Donor',
+      bio: 'On-chain philanthropist backing transparent Indian causes',
+      isVerified: false,
+    };
+  } catch (e) {
+    return {
+      name: 'Web3 User',
+      organization: 'Contributor',
+      role: 'Donor',
+      bio: '',
+    };
+  }
+};
+
+export const saveUserProfile = (account, profile) => {
+  if (!account) return;
+  try {
+    const key = `fundflow_profile_${account.toLowerCase()}`;
+    localStorage.setItem(key, JSON.stringify(profile));
+  } catch (e) {
+    console.error('Error saving user profile:', e);
+  }
+};
+
+// --- Ownership Check Helper ---
+export const isCampaignOrganizer = (campaign, account) => {
+  if (!campaign || !campaign.organizer || !account) return false;
+  return campaign.organizer.toLowerCase() === account.toLowerCase();
+};

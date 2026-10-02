@@ -20,12 +20,12 @@ import {
 import { useWeb3 } from '../context/Web3Context';
 import UserAvatar from './UserAvatar';
 import { ETH_TO_INR_RATE, DEFAULT_CONTRACT_ADDRESS } from '../utils/constants';
+import { getUserProfile, isCampaignOrganizer } from '../utils/storageDb';
 
 export default function Header({
   searchQuery,
   setSearchQuery,
-  roleMode = 'auto',
-  setRoleMode,
+  campaigns = [],
   onSearchSubmit,
   onNavigateTab,
 }) {
@@ -38,6 +38,11 @@ export default function Header({
     isSepolia,
     switchNetworkToSepolia,
   } = useWeb3();
+
+  const profile = getUserProfile(account);
+  const myOwnedCount = account
+    ? campaigns.filter((c) => isCampaignOrganizer(c, account)).length
+    : 0;
 
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
@@ -136,44 +141,18 @@ export default function Header({
 
       {/* Right Controls: Role Simulator, Notifications, Mail, Web3 Profile */}
       <div className="flex items-center gap-2.5">
-        {/* Presentation Role Switcher (Donor vs Organizer Demo View) */}
-        {setRoleMode && (
-          <div className="hidden sm:flex items-center bg-slate-50 border border-slate-200/80 rounded-lg p-0.5 text-[11px] font-semibold">
-            <button
-              onClick={() => setRoleMode('donor')}
-              title="View interface strictly as a Donor (Contribute only, no withdraw)"
-              className={`px-2 py-1 rounded-md transition-colors cursor-pointer flex items-center gap-1 ${
-                roleMode === 'donor'
-                  ? 'bg-brand-600 text-white shadow-xs'
-                  : 'text-slate-600 hover:text-slate-900'
+        {/* Real Wallet-Bound Account Identity Badge */}
+        {account && (
+          <div className="hidden sm:flex items-center gap-2 px-3 py-1 rounded-lg bg-slate-50 border border-slate-200/80 text-xs">
+            <span
+              className={`w-2 h-2 rounded-full ${
+                myOwnedCount > 0 ? 'bg-emerald-500 ring-2 ring-emerald-100' : 'bg-blue-500 ring-2 ring-blue-100'
               }`}
-            >
-              <Heart className="w-3 h-3" />
-              <span>Donor Mode</span>
-            </button>
-            <button
-              onClick={() => setRoleMode('organizer')}
-              title="View interface as Campaign Organizer (Withdrawal & milestone controls enabled)"
-              className={`px-2 py-1 rounded-md transition-colors cursor-pointer flex items-center gap-1 ${
-                roleMode === 'organizer'
-                  ? 'bg-amber-600 text-white shadow-xs'
-                  : 'text-slate-600 hover:text-slate-900'
-              }`}
-            >
-              <ShieldCheck className="w-3 h-3" />
-              <span>Organizer Mode</span>
-            </button>
-            <button
-              onClick={() => setRoleMode('auto')}
-              title="Automatically match role based on connected MetaMask wallet"
-              className={`px-2 py-1 rounded-md transition-colors cursor-pointer ${
-                roleMode === 'auto'
-                  ? 'bg-white text-slate-800 shadow-xs border border-slate-200'
-                  : 'text-slate-400 hover:text-slate-700'
-              }`}
-            >
-              Auto
-            </button>
+            ></span>
+            <span className="font-bold text-slate-800">{profile.name}</span>
+            <span className="text-[10px] text-slate-400 font-medium">
+              {myOwnedCount > 0 ? `Organizer (${myOwnedCount} Causes)` : 'Contributor'}
+            </span>
           </div>
         )}
 
@@ -311,12 +290,14 @@ export default function Header({
                 <div className="flex items-center gap-2.5 pb-2.5 border-b border-slate-100">
                   <UserAvatar account={account} size="lg" />
                   <div className="overflow-hidden">
-                    <div className="font-mono font-bold text-slate-800 text-[11px] truncate">
-                      {account}
+                    <div className="font-bold text-slate-800 text-xs truncate">
+                      {profile.name}
                     </div>
-                    <div className="text-[11px] text-emerald-600 font-medium flex items-center gap-1 mt-0.5">
-                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
-                      <span>Sepolia Connected</span>
+                    <div className="text-[10px] text-slate-400 truncate">
+                      {profile.organization}
+                    </div>
+                    <div className="font-mono text-slate-500 text-[10px] truncate mt-0.5">
+                      {account}
                     </div>
                   </div>
                 </div>
