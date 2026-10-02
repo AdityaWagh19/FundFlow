@@ -82,6 +82,7 @@ export default function App() {
           const collected = Number(c.amountCollected) / 1e18;
           const percent = Math.min(100, Math.round((collected / (target || 1)) * 100));
           const matchingInit = INITIAL_CAMPAIGNS.find((item) => item.id === Number(c.id));
+          const isInitialCause = Number(c.id) <= 5;
           const defaultIndianLocations = [
             "Pune & Nashik, Maharashtra",
             "Wayanad, Kerala",
@@ -92,7 +93,10 @@ export default function App() {
 
           return {
             id: Number(c.id),
-            organizer: c.organizer,
+            organizer: isInitialCause && matchingInit ? matchingInit.organizer : c.organizer,
+            organizerName: isInitialCause && matchingInit ? matchingInit.organizerName : `${c.organizer.slice(0, 6)}...`,
+            isPlatformSeed: isInitialCause,
+            isUserCreated: !isInitialCause,
             title: c.title,
             description: c.description,
             category: Number(c.category),
@@ -106,8 +110,9 @@ export default function App() {
           };
         });
 
-        // Merge on-chain with India-centric initial campaigns
-        const combined = [...parsed];
+        // Merge on-chain with India-centric initial campaigns and locally created campaigns
+        const localCreated = getStoredCreatedCampaigns();
+        const combined = [...localCreated, ...parsed];
         INITIAL_CAMPAIGNS.forEach((initC) => {
           if (!combined.some((item) => item.id === initC.id)) {
             combined.push(initC);
@@ -272,6 +277,7 @@ export default function App() {
   };
 
   const handleCampaignCreated = (newCampaign) => {
+    storeCreatedCampaign(newCampaign);
     setCampaigns((prev) => [newCampaign, ...prev]);
     setTimeout(loadBlockchainData, 3000);
   };

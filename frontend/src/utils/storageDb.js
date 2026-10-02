@@ -121,21 +121,10 @@ export const getUserProfile = (account) => {
     const raw = localStorage.getItem(key);
     if (raw) return JSON.parse(raw);
 
-    // Default profile for the contract deployer / organizer
-    if (account.toLowerCase() === '0x76b70b73d7101c711f295da6bd6b28cdd6721a72') {
-      return {
-        name: 'Verified Campaign Organizer',
-        organization: 'FundFlow India Foundation (Registered NGO)',
-        role: 'Verified Organizer',
-        bio: 'Lead organizer of Maharashtra school digitisation and humanitarian relief initiatives',
-        isVerified: true,
-      };
-    }
-
     return {
       name: `Benefactor (${account.slice(2, 6)})`,
-      organization: 'Individual Contributor',
-      role: 'Donor',
+      organization: 'Independent Contributor',
+      role: 'Contributor & Organizer',
       bio: 'On-chain philanthropist backing transparent Indian causes',
       isVerified: false,
     };
@@ -162,5 +151,7 @@ export const saveUserProfile = (account, profile) => {
 // --- Ownership Check Helper ---
 export const isCampaignOrganizer = (campaign, account) => {
   if (!campaign || !campaign.organizer || !account) return false;
+  // Initial platform seed causes belong to the registered NGO trusts, not the visitor wallet
+  if (campaign.isPlatformSeed) return false;
   return campaign.organizer.toLowerCase() === account.toLowerCase();
 };

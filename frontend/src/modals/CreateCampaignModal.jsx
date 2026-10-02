@@ -47,6 +47,7 @@ export default function CreateCampaignModal({ isOpen, onClose, onCampaignCreated
         await tx.wait(1);
       }
 
+      const inrTarget = Math.round(parseFloat(targetAmount) * 285000).toLocaleString('en-IN');
       const newCampaign = {
         id: Date.now(),
         title,
@@ -56,8 +57,11 @@ export default function CreateCampaignModal({ isOpen, onClose, onCampaignCreated
         amountCollected: '0.00',
         percent: 0,
         image: finalImage,
-        raisedFormatted: '$0',
-        targetFormatted: `${targetAmount} ETH`,
+        organizer: account,
+        isUserCreated: true,
+        isPlatformSeed: false,
+        raisedFormatted: '₹0',
+        targetFormatted: `₹${inrTarget}`,
       };
 
       if (onCampaignCreated) {

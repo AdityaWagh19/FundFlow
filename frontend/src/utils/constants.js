@@ -40,7 +40,9 @@ export const INITIAL_CAMPAIGNS = [
     location: "Pune, Maharashtra",
     raisedFormatted: "₹17,67,000",
     targetFormatted: "₹24,22,500",
-    organizer: "0x76b70B73D7101c711f295DA6bD6B28CDD6721A72",
+    organizer: "0x51A7F938B8d4E21eCF58a28753a1c618367F4752", // Maharashtra Shiksha Trust
+    organizerName: "Maharashtra Shiksha Trust",
+    isPlatformSeed: true,
   },
   {
     id: 2,
@@ -54,7 +56,9 @@ export const INITIAL_CAMPAIGNS = [
     location: "Wayanad, Kerala",
     raisedFormatted: "₹30,43,800",
     targetFormatted: "₹34,20,000",
-    organizer: "0x76b70B73D7101c711f295DA6bD6B28CDD6721A72",
+    organizer: "0x7A250d5630B4cF539739dF2C5dAcb4c659F2488D", // Kerala Disaster Relief Council
+    organizerName: "Kerala Disaster Relief Council",
+    isPlatformSeed: true,
   },
   {
     id: 3,
@@ -68,7 +72,9 @@ export const INITIAL_CAMPAIGNS = [
     location: "AIIMS & Sassoon General Hospital, Pune",
     raisedFormatted: "₹6,02,775",
     targetFormatted: "₹12,82,500",
-    organizer: "0x76b70B73D7101c711f295DA6bD6B28CDD6721A72",
+    organizer: "0x220866B1A2219f40e72f5c628B65D54268cA3A9D", // AIIMS Pediatric Health Fund
+    organizerName: "AIIMS Pediatric Health Fund",
+    isPlatformSeed: true,
   },
   {
     id: 4,
@@ -82,7 +88,9 @@ export const INITIAL_CAMPAIGNS = [
     location: "Chhatrapati Sambhajinagar, Maharashtra",
     raisedFormatted: "₹11,28,600",
     targetFormatted: "₹17,10,000",
-    organizer: "0x76b70B73D7101c711f295DA6bD6B28CDD6721A72",
+    organizer: "0x3f5CE5FBFe3E9af3971dD833D26bA9b5C936f0bE", // Marathwada Water Conservation Society
+    organizerName: "Marathwada Water Conservation Society",
+    isPlatformSeed: true,
   },
   {
     id: 5,
@@ -96,7 +104,9 @@ export const INITIAL_CAMPAIGNS = [
     location: "Dharavi, Mumbai",
     raisedFormatted: "₹6,84,000",
     targetFormatted: "₹8,55,000",
-    organizer: "0x76b70B73D7101c711f295DA6bD6B28CDD6721A72",
+    organizer: "0x89205A3A3b2A69De6Dbf7f01ED13B2108B2c43e7", // Akshaya Patra Relief Foundation
+    organizerName: "Akshaya Patra Relief Foundation",
+    isPlatformSeed: true,
   },
 ];
 

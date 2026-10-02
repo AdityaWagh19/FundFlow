@@ -150,8 +150,10 @@ export default function Header({
               }`}
             ></span>
             <span className="font-bold text-slate-800">{profile.name}</span>
-            <span className="text-[10px] text-slate-400 font-medium">
-              {myOwnedCount > 0 ? `Organizer (${myOwnedCount} Causes)` : 'Contributor'}
+            <span className="text-[10px] text-slate-500 font-medium">
+              {myOwnedCount > 0
+                ? `Organizer & Donor (${myOwnedCount} Cause${myOwnedCount > 1 ? 's' : ''})`
+                : 'Contributor / Donor'}
             </span>
           </div>
         )}

@@ -223,7 +223,7 @@ export default function CampaignAdminPage({
                       ) : (
                         <span className="text-[10px] font-bold text-slate-600 bg-slate-50 border border-slate-200/60 px-2 py-0.5 rounded-sm flex items-center gap-1">
                           <Lock className="w-3 h-3 text-slate-400" />
-                          <span>Organizer: {c.organizer ? `${c.organizer.substring(0, 6)}...${c.organizer.substring(c.organizer.length - 4)}` : 'On-Chain'}</span>
+                          <span>Organizer: {c.organizerName || (c.organizer ? `${c.organizer.substring(0, 6)}...${c.organizer.substring(c.organizer.length - 4)}` : 'Verified NGO')}</span>
                         </span>
                       )}
                     </div>
