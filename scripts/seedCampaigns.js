@@ -4,7 +4,7 @@ const path = require("path");
 
 async function main() {
   console.log("----------------------------------------------------");
-  console.log("Seeding FundFlow Demo Campaigns on Sepolia...");
+  console.log("Seeding FundFlow Indian Humanitarian Causes on Sepolia...");
   console.log("----------------------------------------------------");
 
   // Read deployed address
@@ -28,34 +28,34 @@ async function main() {
   console.log("Attached to contract at:", contractAddress);
   console.log("Signer address:", deployer.address);
 
-  const sampleCampaigns = [
+  const indianCampaigns = [
     {
-      title: "Save our students with your Donation!",
-      description: "Emergency scholarship fund supporting underprivileged university students facing sudden tuition shortfalls and displacement.",
-      image: "https://images.unsplash.com/photo-1523240795612-9a054b0db644?auto=format&fit=crop&w=800&q=80",
+      title: "Save Rural Students: Pune & Nashik ZP School Grants",
+      description: "Providing high-speed tablets, educational kits, and crisis scholarship grants for underprivileged Zilla Parishad school students across Maharashtra.",
+      image: "https://images.unsplash.com/photo-1509062522246-3755977927d7?auto=format&fit=crop&w=800&q=80",
       category: 1, // Education
       target: hre.ethers.parseEther("1.0"),
       duration: 45,
     },
     {
-      title: "Los Angeles Flood Relief & Shelter",
-      description: "Providing clean drinking water, dry rations, and temporary housing containers for families displaced by historic flooding.",
+      title: "Kerala & Wayanad Monsoon Flood Emergency Relief",
+      description: "Emergency rescue shelters, clean drinking water purifiers, and dry food supply kits for vulnerable families displaced by heavy monsoon landslides.",
       image: "https://images.unsplash.com/photo-1547683905-f686c993aae5?auto=format&fit=crop&w=800&q=80",
       category: 2, // Disaster
       target: hre.ethers.parseEther("2.0"),
       duration: 30,
     },
     {
-      title: "Dengue Fever Pediatric Emergency Care",
-      description: "Supplying rapid diagnostic test kits, intravenous fluids, and mosquito netting for pediatric community clinics in vulnerable regions.",
+      title: "Pediatric Thalassemia & Cardiac Care (AIIMS & Sassoon Pune)",
+      description: "Life-saving blood transfusions, pediatric cardiac surgeries, and rapid diagnostics for children admitted to government civic hospitals.",
       image: "https://images.unsplash.com/photo-1584515979956-d9f6e5d09982?auto=format&fit=crop&w=800&q=80",
       category: 0, // Medical
       target: hre.ethers.parseEther("0.5"),
       duration: 20,
     },
     {
-      title: "Road Repair & Village Bridge Donation",
-      description: "Reconstructing a washed-out connecting bridge and damaged access road to allow ambulances and school buses to safely pass.",
+      title: "Marathwada Drought Relief & Village Rainwater Harvesting",
+      description: "Recharging dried agricultural borewells and building community rainwater harvesting recharge pits for smallholder farming families.",
       image: "https://images.unsplash.com/photo-1541888946425-d0fbb18f15f6?auto=format&fit=crop&w=800&q=80",
       category: 4, // Community
       target: hre.ethers.parseEther("0.8"),
@@ -63,9 +63,9 @@ async function main() {
     },
   ];
 
-  for (let i = 0; i < sampleCampaigns.length; i++) {
-    const c = sampleCampaigns[i];
-    console.log(`Creating campaign ${i + 1}/${sampleCampaigns.length}: "${c.title}"...`);
+  for (let i = 0; i < indianCampaigns.length; i++) {
+    const c = indianCampaigns[i];
+    console.log(`Creating Indian campaign ${i + 1}/${indianCampaigns.length}: "${c.title}"...`);
     const tx = await fundFlow.createCampaign(
       c.title,
       c.description,
@@ -78,13 +78,13 @@ async function main() {
     console.log(`Confirmed in block!`);
   }
 
-  console.log("Making a live initial donation of 0.001 ETH to Campaign 1...");
+  console.log("Making a live initial donation of 0.001 ETH to Campaign 1 (Rural Students)...");
   const donateTx = await fundFlow.donate(1, { value: hre.ethers.parseEther("0.001") });
   await donateTx.wait(1);
   console.log("Donation confirmed!");
 
   console.log("----------------------------------------------------");
-  console.log(">>> Sepolia Seeding Completed Successfully!");
+  console.log(">>> Indian Campaigns Seeded Successfully on Sepolia!");
   console.log("----------------------------------------------------");
 }
 

@@ -102,8 +102,8 @@ struct Campaign {
 | Parameter | Value |
 | :--- | :--- |
 | **Network** | Ethereum Sepolia Testnet (Chain ID: `11155111`) |
-| **Contract Address** | `0xa96C6Da4CDDdE292918efCdA174F933BaBE918fa` |
-| **Block Explorer** | [View on Sepolia Etherscan](https://sepolia.etherscan.io/address/0xa96C6Da4CDDdE292918efCdA174F933BaBE918fa) |
+| **Contract Address** | `0x376a819Cf9e7dFAb537aE00e1063A9A17f63c497` |
+| **Block Explorer** | [View on Sepolia Etherscan](https://sepolia.etherscan.io/address/0x376a819Cf9e7dFAb537aE00e1063A9A17f63c497) |
 | **Solidity Compiler** | `0.8.20` (Optimization: 200 runs, EVM: Paris) |
 
 ---

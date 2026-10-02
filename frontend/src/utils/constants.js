@@ -2,7 +2,7 @@ export const SEPOLIA_CHAIN_ID = "0xaa36a7"; // 11155111 in hex
 export const SEPOLIA_CHAIN_ID_DECIMAL = 11155111;
 
 // Default contract address (Sepolia deployed contract)
-export const DEFAULT_CONTRACT_ADDRESS = "0xa96C6Da4CDDdE292918efCdA174F933BaBE918fa";
+export const DEFAULT_CONTRACT_ADDRESS = "0x376a819Cf9e7dFAb537aE00e1063A9A17f63c497";
 
 export const ETH_TO_INR_RATE = 285000; // 1 ETH ≈ ₹2,85,000 INR
 
