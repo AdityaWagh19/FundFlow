@@ -20,6 +20,7 @@ export const Web3Provider = ({ children }) => {
   const [isConnecting, setIsConnecting] = useState(false);
   const [contractAddress, setContractAddress] = useState(DEFAULT_CONTRACT_ADDRESS);
   const [contract, setContract] = useState(null);
+  const [contractBalance, setContractBalance] = useState('0.000');
   const [provider, setProvider] = useState(null);
   const [signer, setSigner] = useState(null);
   const [error, setError] = useState(null);
@@ -33,37 +34,43 @@ export const Web3Provider = ({ children }) => {
             setContractAddress(module.default.contractAddress);
           }
         })
-        .catch(() => {
-          // If file does not exist yet, default is used
-        });
-    } catch (e) {
-      console.log('Using default contract address');
-    }
+        .catch(() => {});
+    } catch (e) {}
   }, []);
 
-  // Initialize read-only contract instance for instant data fetching before wallet connect
-  useEffect(() => {
-    if (!contract && contractAddress && contractABI) {
-      try {
-        const publicProvider = new ethers.JsonRpcProvider('https://ethereum-sepolia-rpc.publicnode.com');
-        const readOnlyContract = new ethers.Contract(contractAddress, contractABI, publicProvider);
-        setContract(readOnlyContract);
-        setProvider(publicProvider);
-      } catch (e) {
-        console.log('Could not initialize public read-only provider:', e);
-      }
-    }
-  }, [contractAddress, contract]);
-
   const updateBalance = useCallback(async (currentAccount, currentProvider) => {
-    if (!currentAccount || !currentProvider) return;
+    if (!currentProvider) return;
     try {
-      const rawBalance = await currentProvider.getBalance(currentAccount);
-      setBalance(parseFloat(ethers.formatEther(rawBalance)).toFixed(3));
+      if (currentAccount) {
+        const rawBalance = await currentProvider.getBalance(currentAccount);
+        setBalance(parseFloat(ethers.formatEther(rawBalance)).toFixed(4));
+      }
+      if (contractAddress) {
+        const rawContractBal = await currentProvider.getBalance(contractAddress);
+        setContractBalance(parseFloat(ethers.formatEther(rawContractBal)).toFixed(4));
+      }
     } catch (err) {
       console.error('Error fetching balance:', err);
     }
-  }, []);
+  }, [contractAddress]);
+
+  // Initialize read-only contract instance and fetch contract balance on mount
+  useEffect(() => {
+    if (contractAddress && contractABI) {
+      try {
+        const publicProvider = new ethers.JsonRpcProvider('https://ethereum-sepolia-rpc.publicnode.com');
+        const readOnlyContract = new ethers.Contract(contractAddress, contractABI, publicProvider);
+        setContract((prev) => prev || readOnlyContract);
+        setProvider((prev) => prev || publicProvider);
+
+        publicProvider.getBalance(contractAddress).then((bal) => {
+          setContractBalance(parseFloat(ethers.formatEther(bal)).toFixed(4));
+        }).catch(() => {});
+      } catch (e) {
+        console.log('Public provider initialization error:', e);
+      }
+    }
+  }, [contractAddress]);
 
   const connectWallet = async () => {
     if (!window.ethereum) {
@@ -87,7 +94,7 @@ export const Web3Provider = ({ children }) => {
 
       await updateBalance(accounts[0], browserProvider);
 
-      // Initialize contract instance
+      // Initialize signer contract instance
       if (contractAddress && contractABI) {
         const contractInstance = new ethers.Contract(contractAddress, contractABI, currentSigner);
         setContract(contractInstance);
@@ -108,7 +115,6 @@ export const Web3Provider = ({ children }) => {
         params: [{ chainId: SEPOLIA_CHAIN_ID }],
       });
     } catch (switchError) {
-      // 4902 code indicates that the chain has not been added to MetaMask
       if (switchError.code === 4902) {
         try {
           await window.ethereum.request({
@@ -134,7 +140,12 @@ export const Web3Provider = ({ children }) => {
     setAccount(null);
     setBalance('0.00');
     setSigner(null);
-    setContract(null);
+    // Revert to read-only contract
+    if (contractAddress && contractABI) {
+      const publicProvider = new ethers.JsonRpcProvider('https://ethereum-sepolia-rpc.publicnode.com');
+      setContract(new ethers.Contract(contractAddress, contractABI, publicProvider));
+      setProvider(publicProvider);
+    }
   };
 
   // Listen to MetaMask account and chain changes
@@ -172,6 +183,7 @@ export const Web3Provider = ({ children }) => {
         chainId,
         isConnecting,
         contractAddress,
+        contractBalance,
         contract,
         provider,
         signer,
@@ -179,6 +191,7 @@ export const Web3Provider = ({ children }) => {
         connectWallet,
         disconnectWallet,
         switchNetworkToSepolia,
+        refreshBalance: () => updateBalance(account, provider),
         isSepolia: chainId === SEPOLIA_CHAIN_ID_DECIMAL,
       }}
     >

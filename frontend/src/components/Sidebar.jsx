@@ -13,14 +13,30 @@ import {
   Layers,
 } from 'lucide-react';
 
-export default function Sidebar({ activeTab, setActiveTab, onOpenCreateModal }) {
+export default function Sidebar({
+  activeTab,
+  setActiveTab,
+  onOpenCreateModal,
+  myDonationsCount = 0,
+  ownedCampaignsCount = 0,
+}) {
   const generalNav = [
     { id: 'overview', label: 'Overview', icon: LayoutDashboard },
     { id: 'campaigns', label: 'List', icon: List },
-    { id: 'my-donations', label: 'My Donate', icon: HeartHandshake, badge: 5 },
+    {
+      id: 'my-donations',
+      label: 'My Donate',
+      icon: HeartHandshake,
+      badge: myDonationsCount > 0 ? myDonationsCount : null,
+    },
     { id: 'wallet', label: 'Wallet', icon: Wallet },
     { id: 'analysis', label: 'Analysis', icon: BarChart3 },
-    { id: 'campaign-admin', label: 'Campaign', icon: Megaphone, badge: 2 },
+    {
+      id: 'campaign-admin',
+      label: 'Campaign',
+      icon: Megaphone,
+      badge: ownedCampaignsCount > 0 ? ownedCampaignsCount : null,
+    },
   ];
 
   const settingsNav = [
@@ -44,7 +60,7 @@ export default function Sidebar({ activeTab, setActiveTab, onOpenCreateModal }) 
         <div className="mb-6 px-1">
           <button
             onClick={onOpenCreateModal}
-            className="w-full flex items-center justify-center gap-2 py-2 px-3 bg-brand-600 hover:bg-brand-700 text-white font-medium text-xs rounded-lg transition-colors"
+            className="w-full flex items-center justify-center gap-2 py-2 px-3 bg-brand-600 hover:bg-brand-700 text-white font-medium text-xs rounded-lg transition-colors cursor-pointer"
           >
             <PlusCircle className="w-3.5 h-3.5" />
             <span>Launch Cause</span>
@@ -64,7 +80,7 @@ export default function Sidebar({ activeTab, setActiveTab, onOpenCreateModal }) 
                 <button
                   key={item.id}
                   onClick={() => setActiveTab(item.id)}
-                  className={`w-full flex items-center justify-between px-3 py-2 rounded-lg text-xs font-medium transition-colors ${
+                  className={`w-full flex items-center justify-between px-3 py-2 rounded-lg text-xs font-medium transition-colors cursor-pointer ${
                     isActive
                       ? 'bg-brand-600 text-white'
                       : 'text-slate-500 hover:text-slate-800 hover:bg-slate-50'
@@ -102,7 +118,7 @@ export default function Sidebar({ activeTab, setActiveTab, onOpenCreateModal }) 
                 <button
                   key={item.id}
                   onClick={() => setActiveTab(item.id)}
-                  className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-xs font-medium transition-colors ${
+                  className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-xs font-medium transition-colors cursor-pointer ${
                     isActive
                       ? 'bg-brand-600 text-white'
                       : 'text-slate-500 hover:text-slate-800 hover:bg-slate-50'

@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
-import { Wallet, Copy, Check, ExternalLink, RefreshCw, AlertCircle, ArrowUpRight } from 'lucide-react';
+import { Wallet, Copy, Check, ExternalLink, RefreshCw, AlertCircle, Landmark } from 'lucide-react';
 import { useWeb3 } from '../context/Web3Context';
 import { DEFAULT_CONTRACT_ADDRESS, ETH_TO_INR_RATE } from '../utils/constants';
 
 export default function WalletPage() {
-  const { account, balance, chainId, connectWallet, isSepolia, switchNetworkToSepolia } = useWeb3();
+  const { account, balance, contractBalance, chainId, connectWallet, isSepolia, refreshBalance } = useWeb3();
   const [copied, setCopied] = useState(false);
 
   const copyAddress = () => {
@@ -15,14 +15,29 @@ export default function WalletPage() {
   };
 
   const inrBalance = (parseFloat(balance || 0) * ETH_TO_INR_RATE).toLocaleString('en-IN', {
-    maximumFractionDigits: 2,
+    maximumFractionDigits: 0,
+  });
+
+  const contractInr = (parseFloat(contractBalance || 0) * ETH_TO_INR_RATE).toLocaleString('en-IN', {
+    maximumFractionDigits: 0,
   });
 
   return (
     <div className="space-y-6">
-      <div>
-        <h2 className="text-xl font-bold text-slate-800 tracking-tight">Web3 Wallet & Treasury Management</h2>
-        <p className="text-xs text-slate-400">Non-custodial cryptographic wallet interface on Ethereum Sepolia</p>
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <div>
+          <h2 className="text-xl font-bold text-slate-800 tracking-tight">Web3 Wallet & Treasury Management</h2>
+          <p className="text-xs text-slate-400">Non-custodial cryptographic wallet interface on Ethereum Sepolia</p>
+        </div>
+        {account && (
+          <button
+            onClick={refreshBalance}
+            className="self-start px-3 py-1.5 bg-white border border-slate-200 hover:border-brand-500 text-slate-700 text-xs font-semibold rounded-lg transition-colors flex items-center gap-1.5"
+          >
+            <RefreshCw className="w-3.5 h-3.5" />
+            <span>Refresh Balances</span>
+          </button>
+        )}
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
@@ -34,7 +49,7 @@ export default function WalletPage() {
                 <Wallet className="w-5 h-5" />
               </div>
               <div>
-                <h3 className="text-sm font-bold text-slate-800">Connected Account</h3>
+                <h3 className="text-sm font-bold text-slate-800">Connected MetaMask Account</h3>
                 <p className="text-xs text-slate-400">Ethereum EIP-1193 Provider</p>
               </div>
             </div>
@@ -46,9 +61,9 @@ export default function WalletPage() {
           </div>
 
           {account ? (
-            <div className="p-4 bg-slate-50 rounded-lg border border-slate-100 space-y-3">
+            <div className="p-4 bg-slate-50 rounded-lg border border-slate-100 space-y-2">
               <div className="flex items-center justify-between text-xs text-slate-500">
-                <span>Public Address</span>
+                <span>Public Wallet Address</span>
                 <button
                   onClick={copyAddress}
                   className="flex items-center gap-1 text-brand-600 hover:text-brand-700 font-semibold cursor-pointer"
@@ -74,18 +89,24 @@ export default function WalletPage() {
             </div>
           )}
 
-          {/* Balance Breakdown */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
+          {/* Real Balance Breakdown */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-2">
             <div className="p-4 rounded-lg bg-slate-50/70 border border-slate-100">
-              <div className="text-[11px] text-slate-400 uppercase tracking-wider mb-1">Sepolia ETH Balance</div>
-              <div className="text-2xl font-bold text-brand-600 font-mono">{balance} ETH</div>
-              <div className="text-xs text-slate-500 mt-1">Available for gas & donations</div>
+              <div className="text-[11px] text-slate-400 uppercase tracking-wider mb-1">Your Sepolia ETH</div>
+              <div className="text-xl font-bold text-brand-600 font-mono">{balance} ETH</div>
+              <div className="text-xs text-slate-500 mt-1">Live wallet balance</div>
             </div>
 
             <div className="p-4 rounded-lg bg-slate-50/70 border border-slate-100">
               <div className="text-[11px] text-slate-400 uppercase tracking-wider mb-1">INR Equivalent Value</div>
-              <div className="text-2xl font-bold text-slate-800">₹{inrBalance}</div>
-              <div className="text-xs text-slate-400 mt-1">Calculated at 1 ETH ≈ ₹2,85,000</div>
+              <div className="text-xl font-bold text-slate-800">₹{inrBalance}</div>
+              <div className="text-xs text-slate-400 mt-1">Live ETH/INR calculation</div>
+            </div>
+
+            <div className="p-4 rounded-lg bg-slate-50/70 border border-slate-100">
+              <div className="text-[11px] text-slate-400 uppercase tracking-wider mb-1">Escrow Vault Holdings</div>
+              <div className="text-xl font-bold text-indigo-600 font-mono">{contractBalance} ETH</div>
+              <div className="text-xs text-slate-400 mt-1">≈ ₹{contractInr} locked</div>
             </div>
           </div>
         </div>
@@ -131,7 +152,7 @@ export default function WalletPage() {
 
           <div className="pt-2 text-[11px] text-slate-400 leading-relaxed border-t border-slate-100">
             Contract Address:
-            <div className="font-mono text-slate-600 truncate mt-0.5">
+            <div className="font-mono text-slate-600 truncate mt-0.5 select-all">
               {DEFAULT_CONTRACT_ADDRESS}
             </div>
           </div>
