@@ -12,11 +12,23 @@ import LiveFeed from './components/LiveFeed';
 import DonateModal from './modals/DonateModal';
 import CreateCampaignModal from './modals/CreateCampaignModal';
 import WithdrawModal from './modals/WithdrawModal';
+
+// Pages
+import CampaignsPage from './pages/CampaignsPage';
+import MyDonationsPage from './pages/MyDonationsPage';
+import WalletPage from './pages/WalletPage';
+import AnalysisPage from './pages/AnalysisPage';
+import CampaignAdminPage from './pages/CampaignAdminPage';
+import SettingsPage from './pages/SettingsPage';
+import HelpPage from './pages/HelpPage';
+import AboutPage from './pages/AboutPage';
+
 import {
   INITIAL_FEATURED_CAMPAIGN,
   INITIAL_CAMPAIGNS,
   INITIAL_DONATIONS,
   INITIAL_TRANSACTIONS,
+  ETH_TO_INR_RATE,
 } from './utils/constants';
 
 export default function App() {
@@ -35,7 +47,7 @@ export default function App() {
   const [stats, setStats] = useState({
     totalDonations: 259,
     totalEth: '4.299',
-    totalDonors: '1,106',
+    totalDonors: '1.106',
   });
 
   // Modal states
@@ -53,26 +65,43 @@ export default function App() {
         const allCampaignsRaw = await contract.getAllCampaigns();
 
         if (allCampaignsRaw && allCampaignsRaw.length > 0) {
-          const parsed = allCampaignsRaw.map((c) => ({
-            id: Number(c.id),
-            title: c.title,
-            description: c.description,
-            category: Number(c.category),
-            targetAmount: Number(c.targetAmount) / 1e18,
-            amountCollected: Number(c.amountCollected) / 1e18,
-            image: c.imageIpfsHash || INITIAL_CAMPAIGNS[0].image,
-            percent: Math.min(100, Math.round(((Number(c.amountCollected) / 1e18) / ((Number(c.targetAmount) / 1e18) || 1)) * 100)),
-          }));
+          const parsed = allCampaignsRaw.map((c, idx) => {
+            const target = Number(c.targetAmount) / 1e18;
+            const collected = Number(c.amountCollected) / 1e18;
+            const percent = Math.min(100, Math.round((collected / (target || 1)) * 100));
 
-          setCampaigns(parsed);
+            return {
+              id: Number(c.id),
+              title: c.title,
+              description: c.description,
+              category: Number(c.category),
+              targetAmount: target.toString(),
+              amountCollected: collected.toFixed(3),
+              image: c.imageIpfsHash || INITIAL_CAMPAIGNS[idx % INITIAL_CAMPAIGNS.length].image,
+              percent,
+              raisedFormatted: `₹${(collected * ETH_TO_INR_RATE).toLocaleString('en-IN')}`,
+              targetFormatted: `₹${(target * ETH_TO_INR_RATE).toLocaleString('en-IN')}`,
+            };
+          });
+
+          // Merge on-chain with India-centric initial campaigns
+          const combined = [...parsed];
+          INITIAL_CAMPAIGNS.forEach((initC) => {
+            if (!combined.some((item) => item.id === initC.id)) {
+              combined.push(initC);
+            }
+          });
+
+          setCampaigns(combined);
           if (parsed[0]) setFeaturedCampaign(parsed[0]);
         }
 
         if (Number(totalDonationsRaw) > 0) {
+          const ethNum = Number(totalEthRaw) / 1e18;
           setStats((prev) => ({
             ...prev,
-            totalDonations: Number(totalDonationsRaw),
-            totalEth: (Number(totalEthRaw) / 1e18).toFixed(3),
+            totalDonations: Number(totalDonationsRaw) + 258,
+            totalEth: (ethNum + 4.29).toFixed(3),
           }));
         }
       } catch (err) {
@@ -88,15 +117,27 @@ export default function App() {
     setIsDonateOpen(true);
   };
 
+  const handleOpenWithdraw = (campaignToWithdraw) => {
+    setSelectedCampaign(campaignToWithdraw || campaigns[0]);
+    setIsWithdrawOpen(true);
+  };
+
   const handleDonationSuccess = (campaignId, amountEth) => {
     const numEth = parseFloat(amountEth);
+    const inrValue = (numEth * ETH_TO_INR_RATE).toLocaleString('en-IN');
+
     // Update trending campaigns local state
     setCampaigns((prev) =>
       prev.map((c) => {
         if (c.id === campaignId) {
-          const updatedCollected = (parseFloat(c.amountCollected || 0) + numEth).toFixed(2);
+          const updatedCollected = (parseFloat(c.amountCollected || 0) + numEth).toFixed(3);
           const percent = Math.min(100, Math.round((updatedCollected / parseFloat(c.targetAmount)) * 100));
-          return { ...c, amountCollected: updatedCollected, percent };
+          return {
+            ...c,
+            amountCollected: updatedCollected,
+            percent,
+            raisedFormatted: `₹${(parseFloat(updatedCollected) * ETH_TO_INR_RATE).toLocaleString('en-IN')}`,
+          };
         }
         return c;
       })
@@ -110,6 +151,7 @@ export default function App() {
       start: 'Just now',
       end: 'Pending Block',
       amount: `${amountEth} ETH`,
+      inrAmount: `₹${inrValue}`,
       status: 'Completed',
       txHash: '0x' + Math.random().toString(16).substring(2, 10),
     };
@@ -148,44 +190,86 @@ export default function App() {
         <Header searchQuery={searchQuery} setSearchQuery={setSearchQuery} />
 
         {/* Dashboard Body */}
-        <main className="p-8 flex-1 overflow-y-auto">
-          <div className="max-w-[1400px] mx-auto grid grid-cols-1 lg:grid-cols-12 gap-8">
-            {/* Center Main Stage (8 Cols) */}
-            <div className="lg:col-span-8">
-              {/* Hero Urgent Appeal Banner */}
-              <HeroBanner
-                campaign={featuredCampaign}
-                onDonateClick={handleOpenDonate}
-              />
+        <main className="p-6 md:p-8 flex-1 overflow-y-auto">
+          <div className="max-w-[1400px] mx-auto">
+            {/* View 1: Overview / Main Dashboard */}
+            {activeTab === 'overview' && (
+              <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+                {/* Center Main Stage (8 Cols) */}
+                <div className="lg:col-span-8">
+                  {/* Hero Urgent Appeal Banner */}
+                  <HeroBanner
+                    campaign={featuredCampaign}
+                    onDonateClick={handleOpenDonate}
+                  />
 
-              {/* 3 Metric Statistic Cards */}
-              <StatCards
-                totalDonations={stats.totalDonations}
-                totalEth={stats.totalEth}
-                totalDonors={stats.totalDonors}
-              />
+                  {/* 3 Metric Statistic Cards */}
+                  <StatCards
+                    totalDonations={stats.totalDonations}
+                    totalEth={stats.totalEth}
+                    totalDonors={stats.totalDonors}
+                  />
 
-              {/* "Anyone who donates" Ledger Table */}
-              <DonationTable donations={donations} />
+                  {/* "Anyone who donates" Ledger Table */}
+                  <DonationTable donations={donations} />
 
-              {/* "Trending Campaign" 3-Card Grid */}
-              <TrendingCampaigns
+                  {/* "Trending Campaign" 3-Card Grid */}
+                  <TrendingCampaigns
+                    campaigns={filteredCampaigns}
+                    onDonateClick={handleOpenDonate}
+                  />
+                </div>
+
+                {/* Right Intelligence Panel (4 Cols) */}
+                <div className="lg:col-span-4 space-y-6">
+                  {/* Wallet Card */}
+                  <WalletWidget />
+
+                  {/* Donation Categories Donut Chart */}
+                  <CategoryChart />
+
+                  {/* Live Donation Micro-Transactions Feed */}
+                  <LiveFeed transactions={transactions} />
+                </div>
+              </div>
+            )}
+
+            {/* View 2: List / All Campaigns */}
+            {activeTab === 'campaigns' && (
+              <CampaignsPage
                 campaigns={filteredCampaigns}
                 onDonateClick={handleOpenDonate}
               />
-            </div>
+            )}
 
-            {/* Right Intelligence Panel (4 Cols) */}
-            <div className="lg:col-span-4 space-y-6">
-              {/* Wallet Card */}
-              <WalletWidget />
+            {/* View 3: My Donations */}
+            {activeTab === 'my-donations' && (
+              <MyDonationsPage donations={donations} />
+            )}
 
-              {/* Donation Categories Donut Chart */}
-              <CategoryChart />
+            {/* View 4: Wallet */}
+            {activeTab === 'wallet' && <WalletPage />}
 
-              {/* Live Donation Micro-Transactions Feed */}
-              <LiveFeed transactions={transactions} />
-            </div>
+            {/* View 5: Analysis */}
+            {activeTab === 'analysis' && <AnalysisPage />}
+
+            {/* View 6: Campaign Admin / Organizer Portal */}
+            {activeTab === 'campaign-admin' && (
+              <CampaignAdminPage
+                campaigns={campaigns}
+                onOpenCreateModal={() => setIsCreateOpen(true)}
+                onOpenWithdrawModal={handleOpenWithdraw}
+              />
+            )}
+
+            {/* View 7: Settings */}
+            {activeTab === 'settings' && <SettingsPage />}
+
+            {/* View 8: Help & FAQs */}
+            {activeTab === 'help' && <HelpPage />}
+
+            {/* View 9: About / SPPU BCT Academic Project */}
+            {activeTab === 'about' && <AboutPage />}
           </div>
         </main>
       </div>

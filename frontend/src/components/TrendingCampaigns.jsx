@@ -1,4 +1,5 @@
 import React from 'react';
+import SafeImage from './SafeImage';
 
 export default function TrendingCampaigns({ campaigns, onDonateClick }) {
   return (
@@ -8,21 +9,20 @@ export default function TrendingCampaigns({ campaigns, onDonateClick }) {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        {campaigns.map((c) => {
-          const percent = c.percent || Math.min(100, Math.round((Number(c.amountCollected) / (Number(c.targetAmount) || 1)) * 100));
+        {campaigns.slice(0, 3).map((c) => {
+          const percent = c.percent || Math.min(100, Math.round(((Number(c.amountCollected) || 0) / (Number(c.targetAmount) || 1)) * 100));
           return (
             <div
               key={c.id}
               className="bg-white rounded-xl border border-slate-100 p-4 shadow-sm flex flex-col justify-between"
             >
               <div>
-                {/* Campaign Image - clean, no overlay pills */}
+                {/* Campaign Image with SafeImage fallback */}
                 <div className="w-full h-32 rounded-lg overflow-hidden mb-3 bg-slate-100">
-                  <img
+                  <SafeImage
                     src={c.image}
                     alt={c.title}
                     className="w-full h-full object-cover"
-                    loading="lazy"
                   />
                 </div>
 

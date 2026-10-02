@@ -1,4 +1,5 @@
 import React from 'react';
+import SafeImage from './SafeImage';
 import { INITIAL_TRANSACTIONS } from '../utils/constants';
 
 export default function LiveFeed({ transactions = INITIAL_TRANSACTIONS }) {
@@ -13,7 +14,7 @@ export default function LiveFeed({ transactions = INITIAL_TRANSACTIONS }) {
           <div key={tx.id} className="flex items-center justify-between">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-lg overflow-hidden bg-slate-100 shrink-0">
-                <img
+                <SafeImage
                   src={tx.image}
                   alt={tx.title}
                   className="w-full h-full object-cover"
