@@ -31,24 +31,43 @@ import {
   INITIAL_TRANSACTIONS,
   ETH_TO_INR_RATE,
 } from './utils/constants';
+import {
+  getStoredDonations,
+  getStoredRole,
+  setStoredRole,
+  storeCreatedCampaign,
+  getStoredCreatedCampaigns,
+} from './utils/storageDb';
 
 export default function App() {
   const { contract, account, refreshBalance } = useWeb3();
 
   const [activeTab, setActiveTab] = useState('overview');
   const [searchQuery, setSearchQuery] = useState('');
+  const [roleMode, setRoleMode] = useState(() => getStoredRole());
+
+  const handleSetRoleMode = (newMode) => {
+    setRoleMode(newMode);
+    setStoredRole(newMode);
+  };
 
   // Data states
   const [featuredCampaign, setFeaturedCampaign] = useState(INITIAL_FEATURED_CAMPAIGN);
-  const [campaigns, setCampaigns] = useState(INITIAL_CAMPAIGNS);
-  const [donations, setDonations] = useState(INITIAL_DONATIONS);
+  const [campaigns, setCampaigns] = useState(() => {
+    const localCreated = getStoredCreatedCampaigns();
+    return [...localCreated, ...INITIAL_CAMPAIGNS];
+  });
+  const [donations, setDonations] = useState(() => {
+    const stored = getStoredDonations();
+    return stored.length > 0 ? stored : INITIAL_DONATIONS;
+  });
   const [transactions, setTransactions] = useState(INITIAL_TRANSACTIONS);
 
   // Platform stats
   const [stats, setStats] = useState({
     totalDonations: 259,
     totalEth: '4.299',
-    totalDonors: '1.106',
+    totalDonors: '1,106',
   });
 
   // Modal states
@@ -138,9 +157,18 @@ export default function App() {
           }
         }
 
-        if (onChainDonations.length > 0) {
-          // Put newest donations first
-          setDonations(onChainDonations.reverse());
+        // Merge with local persistent database donations
+        const storedDonations = getStoredDonations();
+        const combinedDonations = [...storedDonations];
+
+        onChainDonations.forEach((ocd) => {
+          if (!combinedDonations.some((sd) => sd.txHash === ocd.txHash)) {
+            combinedDonations.push(ocd);
+          }
+        });
+
+        if (combinedDonations.length > 0) {
+          setDonations(combinedDonations);
         }
       }
 
@@ -168,12 +196,15 @@ export default function App() {
       )
     : [];
 
-  // Compute campaigns owned by this organizer
-  const ownedCampaigns = account
-    ? campaigns.filter(
-        (c) => (c.organizer || '').toLowerCase() === account.toLowerCase()
-      )
-    : campaigns;
+  // Compute campaigns owned based on active role mode
+  const ownedCampaignsCount =
+    roleMode === 'donor'
+      ? 0
+      : roleMode === 'organizer'
+      ? campaigns.length
+      : account
+      ? campaigns.filter((c) => (c.organizer || '').toLowerCase() === account.toLowerCase()).length
+      : 0;
 
   const handleOpenDonate = (campaignToDonate) => {
     setSelectedCampaign(campaignToDonate || featuredCampaign);
@@ -183,6 +214,25 @@ export default function App() {
   const handleOpenWithdraw = (campaignToWithdraw) => {
     setSelectedCampaign(campaignToWithdraw || campaigns[0]);
     setIsWithdrawOpen(true);
+  };
+
+  const handleWithdrawSuccess = (campaignId, amountWithdrawn, purpose, txHash) => {
+    const numEth = parseFloat(amountWithdrawn);
+    setCampaigns((prev) =>
+      prev.map((c) => {
+        if (c.id === campaignId) {
+          const newCollected = Math.max(0, parseFloat(c.amountCollected || 0) - numEth).toFixed(3);
+          return {
+            ...c,
+            amountCollected: newCollected,
+          };
+        }
+        return c;
+      })
+    );
+
+    if (refreshBalance) refreshBalance();
+    setTimeout(loadBlockchainData, 3000);
   };
 
   const handleDonationSuccess = async (campaignId, amountEth) => {
@@ -253,13 +303,18 @@ export default function App() {
         setActiveTab={setActiveTab}
         onOpenCreateModal={() => setIsCreateOpen(true)}
         myDonationsCount={myDonations.length}
-        ownedCampaignsCount={ownedCampaigns.length}
+        ownedCampaignsCount={ownedCampaignsCount}
       />
 
       {/* 2. Main Content Frame */}
       <div className="flex-1 flex flex-col min-w-0">
         {/* Top Header */}
-        <Header searchQuery={searchQuery} setSearchQuery={setSearchQuery} />
+        <Header
+          searchQuery={searchQuery}
+          setSearchQuery={setSearchQuery}
+          roleMode={roleMode}
+          setRoleMode={handleSetRoleMode}
+        />
 
         {/* Dashboard Body */}
         <main className="p-6 md:p-8 flex-1 overflow-y-auto">
@@ -331,14 +386,22 @@ export default function App() {
             {/* View 6: Campaign Admin / Organizer Portal */}
             {activeTab === 'campaign-admin' && (
               <CampaignAdminPage
-                campaigns={ownedCampaigns}
+                campaigns={campaigns}
                 onOpenCreateModal={() => setIsCreateOpen(true)}
                 onOpenWithdrawModal={handleOpenWithdraw}
+                onOpenDonateModal={handleOpenDonate}
+                roleMode={roleMode}
+                setRoleMode={handleSetRoleMode}
               />
             )}
 
             {/* View 7: Settings */}
-            {activeTab === 'settings' && <SettingsPage />}
+            {activeTab === 'settings' && (
+              <SettingsPage
+                roleMode={roleMode}
+                setRoleMode={handleSetRoleMode}
+              />
+            )}
 
             {/* View 8: Help & FAQs */}
             {activeTab === 'help' && <HelpPage />}
@@ -367,6 +430,8 @@ export default function App() {
         isOpen={isWithdrawOpen}
         onClose={() => setIsWithdrawOpen(false)}
         campaign={selectedCampaign}
+        onWithdrawSuccess={handleWithdrawSuccess}
+        isSimulatedOrganizer={roleMode === 'organizer'}
       />
     </div>
   );

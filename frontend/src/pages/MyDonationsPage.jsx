@@ -129,8 +129,22 @@ export default function MyDonationsPage({ myDonations = [], onExploreClick }) {
                         <ExternalLink className="w-3 h-3 shrink-0" />
                       </a>
                     </td>
-                    <td className="py-3.5 text-right font-semibold text-brand-600">
-                      {item.status || 'Completed'}
+                    <td className="py-3.5 text-right font-semibold text-xs">
+                      {item.status === 'Completed' || item.status === 'Confirmed' || !item.status ? (
+                        <span className="text-emerald-600 font-semibold inline-flex items-center gap-1">
+                          <CheckCircle2 className="w-3 h-3" />
+                          <span>Completed</span>
+                        </span>
+                      ) : item.status === 'Pending' ? (
+                        <span className="text-amber-600 font-semibold inline-flex items-center gap-1.5 animate-pulse">
+                          <span className="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
+                          <span>Pending Confirmation</span>
+                        </span>
+                      ) : (
+                        <span className="text-rose-600 font-semibold inline-flex items-center gap-1">
+                          <span>Failed / Reverted</span>
+                        </span>
+                      )}
                     </td>
                   </tr>
                 ))}

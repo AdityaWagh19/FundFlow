@@ -1,24 +1,35 @@
 import React, { useState } from 'react';
-import { X, Heart, ShieldCheck, ArrowRight, Loader2 } from 'lucide-react';
+import { X, Heart, ShieldCheck, ArrowRight, Loader2, ExternalLink, AlertTriangle } from 'lucide-react';
 import { ethers } from 'ethers';
 import confetti from 'canvas-confetti';
 import { useWeb3 } from '../context/Web3Context';
+import { storeDonation } from '../utils/storageDb';
+import { ETH_TO_INR_RATE } from '../utils/constants';
 
 export default function DonateModal({ isOpen, onClose, campaign, onDonationSuccess }) {
   const { account, contract, connectWallet } = useWeb3();
   const [amount, setAmount] = useState('0.1');
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [txStatus, setTxStatus] = useState('idle'); // 'idle' | 'broadcasting' | 'confirming' | 'confirmed' | 'failed'
   const [txHash, setTxHash] = useState(null);
-  const [error, setError] = useState(null);
+  const [blockNumber, setBlockNumber] = useState(null);
+  const [errorMessage, setErrorMessage] = useState(null);
 
   if (!isOpen || !campaign) return null;
 
   const quickAmounts = ['0.01', '0.05', '0.1', '0.5', '1.0'];
 
+  const resetAndClose = () => {
+    setTxStatus('idle');
+    setTxHash(null);
+    setBlockNumber(null);
+    setErrorMessage(null);
+    onClose();
+  };
+
   const handleDonate = async (e) => {
     e.preventDefault();
     if (!amount || parseFloat(amount) <= 0) {
-      setError('Please enter a valid donation amount');
+      setErrorMessage('Please enter a valid donation amount in ETH.');
       return;
     }
 
@@ -28,35 +39,83 @@ export default function DonateModal({ isOpen, onClose, campaign, onDonationSucce
     }
 
     try {
-      setIsSubmitting(true);
-      setError(null);
+      setErrorMessage(null);
+      setTxStatus('broadcasting');
 
-      if (contract) {
-        const tx = await contract.donate(campaign.id, {
-          value: ethers.parseEther(amount),
-        });
-        const receipt = await tx.wait();
-        setTxHash(receipt.hash);
-      } else {
-        await new Promise((r) => setTimeout(r, 1000));
-        setTxHash('0x' + Array.from({ length: 64 }, () => Math.floor(Math.random() * 16).toString(16)).join(''));
+      if (!contract) {
+        throw new Error('Smart contract connection not available. Please verify your network.');
       }
 
-      confetti({
-        particleCount: 80,
-        spread: 60,
-        origin: { y: 0.6 },
-        colors: ['#2563EB', '#10B981', '#3B82F6'],
+      // 1. Submit transaction to MetaMask
+      const tx = await contract.donate(campaign.id, {
+        value: ethers.parseEther(amount),
       });
 
-      if (onDonationSuccess) {
-        onDonationSuccess(campaign.id, amount);
+      // 2. Transaction broadcasted to mempool
+      setTxHash(tx.hash);
+      setTxStatus('confirming');
+
+      // Store in persistent local database as Pending
+      const inrEstimate = Math.round(parseFloat(amount) * ETH_TO_INR_RATE).toLocaleString('en-IN');
+      const nowFormatted = new Date().toLocaleString('en-IN', {
+        day: 'numeric',
+        month: 'short',
+        hour: '2-digit',
+        minute: '2-digit',
+      });
+
+      storeDonation({
+        txHash: tx.hash,
+        donor: account,
+        name: `${account.substring(0, 6)}...${account.substring(account.length - 4)}`,
+        campaign: campaign.title,
+        campaignId: campaign.id,
+        amount: `${amount} ETH`,
+        inrAmount: `₹${inrEstimate}`,
+        start: nowFormatted,
+        end: 'Awaiting',
+        status: 'Pending',
+      });
+
+      // 3. Wait for real on-chain block confirmation
+      const receipt = await tx.wait(1);
+
+      if (receipt.status === 1) {
+        setBlockNumber(receipt.blockNumber);
+        setTxStatus('confirmed');
+
+        // Update donation status in db to Completed
+        storeDonation({
+          txHash: tx.hash,
+          donor: account,
+          name: `${account.substring(0, 6)}...${account.substring(account.length - 4)}`,
+          campaign: campaign.title,
+          campaignId: campaign.id,
+          amount: `${amount} ETH`,
+          inrAmount: `₹${inrEstimate}`,
+          start: nowFormatted,
+          end: 'Confirmed',
+          status: 'Completed',
+        });
+
+        confetti({
+          particleCount: 80,
+          spread: 60,
+          origin: { y: 0.6 },
+          colors: ['#2563EB', '#10B981', '#3B82F6'],
+        });
+
+        if (onDonationSuccess) {
+          onDonationSuccess(campaign.id, amount, tx.hash);
+        }
+      } else {
+        setTxStatus('failed');
+        setErrorMessage('Transaction was reverted on-chain by the EVM.');
       }
     } catch (err) {
       console.error('Donation failed:', err);
-      setError(err.reason || err.message || 'Transaction rejected or failed');
-    } finally {
-      setIsSubmitting(false);
+      setTxStatus('failed');
+      setErrorMessage(err.reason || err.message || 'Transaction rejected or failed');
     }
   };
 
@@ -65,32 +124,76 @@ export default function DonateModal({ isOpen, onClose, campaign, onDonationSucce
       <div className="bg-white rounded-xl max-w-md w-full p-6 shadow-xl border border-slate-100 relative">
         {/* Close Button */}
         <button
-          onClick={onClose}
-          className="absolute top-4 right-4 w-7 h-7 rounded-lg bg-slate-50 hover:bg-slate-100 flex items-center justify-center text-slate-400 hover:text-slate-700 transition-colors"
+          onClick={resetAndClose}
+          className="absolute top-4 right-4 w-7 h-7 rounded-lg bg-slate-50 hover:bg-slate-100 flex items-center justify-center text-slate-400 hover:text-slate-700 transition-colors cursor-pointer"
         >
           <X className="w-4 h-4" />
         </button>
 
-        {txHash ? (
+        {/* State 1: Confirmed State */}
+        {txStatus === 'confirmed' ? (
           <div className="text-center py-4">
             <div className="w-12 h-12 bg-emerald-50 text-emerald-600 rounded-lg flex items-center justify-center mx-auto mb-3">
               <ShieldCheck className="w-7 h-7" />
             </div>
-            <h3 className="text-base font-bold text-slate-800 mb-1">Donation Confirmed</h3>
+            <h3 className="text-base font-bold text-slate-800 mb-1">Donation Confirmed on Chain</h3>
             <p className="text-xs text-slate-500 mb-4">
-              Contributed {amount} ETH to {campaign.title}. Recorded on Ethereum Sepolia.
+              Successfully contributed <span className="font-bold text-slate-800">{amount} ETH</span> to {campaign.title}. Verified in Block #{blockNumber}.
             </p>
-            <div className="p-2.5 bg-slate-50 rounded-lg text-[11px] font-mono text-slate-600 break-all mb-5">
-              Tx: {txHash}
+            <div className="p-2.5 bg-slate-50 rounded-lg text-[11px] font-mono text-slate-600 break-all mb-4 text-left">
+              <div className="text-slate-400 text-[10px] mb-0.5">Transaction Hash:</div>
+              {txHash}
             </div>
-            <button
-              onClick={onClose}
-              className="w-full py-2.5 bg-brand-600 hover:bg-brand-700 text-white font-semibold text-xs rounded-lg transition-colors"
-            >
-              Done
-            </button>
+            <div className="flex gap-2">
+              <a
+                href={`https://sepolia.etherscan.io/tx/${txHash}`}
+                target="_blank"
+                rel="noreferrer"
+                className="flex-1 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold text-xs rounded-lg transition-colors flex items-center justify-center gap-1.5"
+              >
+                <span>View on Etherscan</span>
+                <ExternalLink className="w-3.5 h-3.5" />
+              </a>
+              <button
+                onClick={resetAndClose}
+                className="flex-1 py-2.5 bg-brand-600 hover:bg-brand-700 text-white font-semibold text-xs rounded-lg transition-colors cursor-pointer"
+              >
+                Close & Refresh
+              </button>
+            </div>
+          </div>
+        ) : txStatus === 'confirming' ? (
+          /* State 2: Transaction Confirming in Mempool */
+          <div className="text-center py-6 space-y-4">
+            <div className="w-12 h-12 bg-blue-50 text-brand-600 rounded-lg flex items-center justify-center mx-auto">
+              <Loader2 className="w-6 h-6 animate-spin text-brand-600" />
+            </div>
+            <div>
+              <h3 className="text-base font-bold text-slate-800 mb-1">Confirming on Sepolia</h3>
+              <p className="text-xs text-slate-500">
+                Transaction submitted to the mempool. Waiting for block validation...
+              </p>
+            </div>
+            {txHash && (
+              <div className="p-2.5 bg-slate-50 rounded-lg text-[11px] font-mono text-slate-600 break-all text-left">
+                <div className="text-slate-400 text-[10px] mb-0.5">Tx Broadcasted:</div>
+                <a
+                  href={`https://sepolia.etherscan.io/tx/${txHash}`}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="text-brand-600 hover:underline flex items-center gap-1"
+                >
+                  <span className="truncate">{txHash}</span>
+                  <ExternalLink className="w-3 h-3 shrink-0" />
+                </a>
+              </div>
+            )}
+            <div className="text-[11px] text-amber-600 font-medium bg-amber-50 py-1.5 px-3 rounded-lg inline-block">
+              Please do not close this window
+            </div>
           </div>
         ) : (
+          /* State 3: Input Form / Broadcasting / Failed */
           <form onSubmit={handleDonate}>
             <div className="flex items-center gap-3 mb-4">
               <div className="w-9 h-9 rounded-lg bg-blue-50 text-brand-600 flex items-center justify-center">
@@ -119,7 +222,7 @@ export default function DonateModal({ isOpen, onClose, campaign, onDonationSucce
                     key={q}
                     type="button"
                     onClick={() => setAmount(q)}
-                    className={`py-1.5 text-xs font-semibold rounded-lg border transition-colors ${
+                    className={`py-1.5 text-xs font-semibold rounded-lg border transition-colors cursor-pointer ${
                       amount === q
                         ? 'bg-brand-600 text-white border-brand-600'
                         : 'bg-white text-slate-600 border-slate-200 hover:border-brand-500'
@@ -148,23 +251,27 @@ export default function DonateModal({ isOpen, onClose, campaign, onDonationSucce
                   ETH
                 </span>
               </div>
+              <div className="text-[11px] text-slate-400 mt-1">
+                ≈ ₹{(parseFloat(amount || 0) * ETH_TO_INR_RATE).toLocaleString('en-IN')} INR
+              </div>
             </div>
 
-            {error && (
-              <div className="p-2.5 mb-4 rounded-lg bg-rose-50 border border-rose-200 text-rose-600 text-xs font-medium">
-                {error}
+            {errorMessage && (
+              <div className="p-2.5 mb-4 rounded-lg bg-rose-50 border border-rose-200 text-rose-600 text-xs font-medium flex items-start gap-2">
+                <AlertTriangle className="w-4 h-4 shrink-0 mt-0.5" />
+                <span>{errorMessage}</span>
               </div>
             )}
 
             <button
               type="submit"
-              disabled={isSubmitting}
-              className="w-full py-2.5 bg-brand-600 hover:bg-brand-700 text-white font-semibold text-xs rounded-lg transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
+              disabled={txStatus === 'broadcasting'}
+              className="w-full py-2.5 bg-brand-600 hover:bg-brand-700 text-white font-semibold text-xs rounded-lg transition-colors flex items-center justify-center gap-2 disabled:opacity-50 cursor-pointer shadow-xs"
             >
-              {isSubmitting ? (
+              {txStatus === 'broadcasting' ? (
                 <>
                   <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                  <span>Processing...</span>
+                  <span>Awaiting Wallet Signature...</span>
                 </>
               ) : (
                 <>

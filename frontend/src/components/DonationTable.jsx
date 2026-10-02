@@ -40,7 +40,11 @@ export default function DonationTable({ donations }) {
                   <td className="py-3 text-right">
                     <span
                       className={`font-semibold ${
-                        isCompleted ? 'text-brand-600' : 'text-rose-500'
+                        item.status === 'Completed' || item.status === 'Confirmed'
+                          ? 'text-brand-600'
+                          : item.status === 'Pending'
+                          ? 'text-amber-600 animate-pulse'
+                          : 'text-rose-500'
                       }`}
                     >
                       {item.status}

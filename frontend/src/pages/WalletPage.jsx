@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
-import { Wallet, Copy, Check, ExternalLink, RefreshCw, AlertCircle, Landmark } from 'lucide-react';
+import { Wallet, Copy, Check, ExternalLink, RefreshCw, AlertCircle, Landmark, LogOut } from 'lucide-react';
 import { useWeb3 } from '../context/Web3Context';
 import { DEFAULT_CONTRACT_ADDRESS, ETH_TO_INR_RATE } from '../utils/constants';
+import UserAvatar from '../components/UserAvatar';
 
 export default function WalletPage() {
-  const { account, balance, contractBalance, chainId, connectWallet, isSepolia, refreshBalance } = useWeb3();
+  const { account, balance, contractBalance, chainId, connectWallet, disconnectWallet, isSepolia, refreshBalance } = useWeb3();
   const [copied, setCopied] = useState(false);
 
   const copyAddress = () => {
@@ -30,13 +31,22 @@ export default function WalletPage() {
           <p className="text-xs text-slate-400">Non-custodial cryptographic wallet interface on Ethereum Sepolia</p>
         </div>
         {account && (
-          <button
-            onClick={refreshBalance}
-            className="self-start px-3 py-1.5 bg-white border border-slate-200 hover:border-brand-500 text-slate-700 text-xs font-semibold rounded-lg transition-colors flex items-center gap-1.5"
-          >
-            <RefreshCw className="w-3.5 h-3.5" />
-            <span>Refresh Balances</span>
-          </button>
+          <div className="flex items-center gap-2 self-start">
+            <button
+              onClick={refreshBalance}
+              className="px-3 py-1.5 bg-white border border-slate-200 hover:border-brand-500 text-slate-700 text-xs font-semibold rounded-lg transition-colors flex items-center gap-1.5 cursor-pointer"
+            >
+              <RefreshCw className="w-3.5 h-3.5" />
+              <span>Refresh Balances</span>
+            </button>
+            <button
+              onClick={disconnectWallet}
+              className="px-3 py-1.5 bg-rose-50 hover:bg-rose-100 border border-rose-200 text-rose-600 text-xs font-semibold rounded-lg transition-colors flex items-center gap-1.5 cursor-pointer"
+            >
+              <LogOut className="w-3.5 h-3.5" />
+              <span>Disconnect</span>
+            </button>
+          </div>
         )}
       </div>
 
@@ -45,9 +55,7 @@ export default function WalletPage() {
         <div className="lg:col-span-2 bg-white rounded-xl border border-slate-100 p-6 shadow-xs space-y-5">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-lg bg-blue-50 text-brand-600 flex items-center justify-center">
-                <Wallet className="w-5 h-5" />
-              </div>
+              <UserAvatar account={account} size="lg" />
               <div>
                 <h3 className="text-sm font-bold text-slate-800">Connected MetaMask Account</h3>
                 <p className="text-xs text-slate-400">Ethereum EIP-1193 Provider</p>
